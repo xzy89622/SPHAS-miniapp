@@ -1,0 +1,24 @@
+<!-- pages/article/list/list.wxml -->
+<view class="page">
+
+<view class="topBar">
+  <view class="tip">下拉可刷新</view>
+</view>
+
+<view wx:if="{{firstLoaded && !loading && list.length === 0}}" class="empty">
+  暂无科普文章
+</view>
+
+<block wx:for="{{list}}" wx:key="id">
+  <view class="item" bindtap="goDetail" data-id="{{item.id}}">
+    <view class="title">{{item.title}}</view>
+    <view class="meta">{{item.publishTime}}</view>
+  </view>
+</block>
+
+<view class="footer" wx:if="{{list.length > 0}}">
+  <view wx:if="{{loading}}" class="footerText">加载中...</view>
+  <view wx:else class="footerText">共 {{list.length}} 篇</view>
+</view>
+
+</view>

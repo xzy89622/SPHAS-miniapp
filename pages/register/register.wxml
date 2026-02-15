@@ -1,0 +1,11 @@
+<view class="container">
+  <view class="card">
+    <view class="title">注册</view>
+
+    <input class="input" placeholder="用户名" />
+    <input class="input" placeholder="密码" password />
+    <input class="input" placeholder="昵称" />
+
+    <button class="btn" bindtap="goLogin">返回登录</button>
+  </view>
+</view>

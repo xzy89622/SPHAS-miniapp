@@ -1,0 +1,20 @@
+<!-- pages/notice/detail/detail.wxml -->
+<view class="page">
+
+<!-- 头部：标题 + 时间 -->
+<view wx:if="{{detail}}" class="headerCard">
+  <view class="title">{{detail.title}}</view>
+  <view class="meta">{{detail.createTime}}</view>
+</view>
+
+<!-- 内容：富文本 -->
+<view wx:if="{{detail}}" class="contentCard">
+  <rich-text nodes="{{nodes}}"></rich-text>
+</view>
+
+<!-- 加载态 -->
+<view wx:else class="loadingWrap">
+  <view class="loadingText">加载中...</view>
+</view>
+
+</view>

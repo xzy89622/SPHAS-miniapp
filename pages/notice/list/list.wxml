@@ -1,0 +1,31 @@
+<!-- pages/notice/list/list.wxml -->
+<view class="page">
+
+<view class="topBar">
+  <view class="tip">下拉可刷新，滑到底部自动加载更多</view>
+  <view class="count" wx:if="{{total > 0}}">共 {{total}} 条</view>
+</view>
+
+<!-- 空状态 -->
+<!-- 空状态：必须首次加载完成后才显示，避免闪烁 -->
+<view wx:if="{{firstLoaded && !loading && list.length === 0}}" class="empty">
+  暂无公告
+</view>
+
+
+<!-- 列表 -->
+<block wx:for="{{list}}" wx:key="id">
+  <view class="item" bindtap="goDetail" data-id="{{item.id}}">
+    <view class="title">{{item.title}}</view>
+    <view class="meta">{{item.createTime}}</view>
+  </view>
+</block>
+
+<!-- 底部状态 -->
+<view class="footer" wx:if="{{list.length > 0}}">
+  <view wx:if="{{loading}}" class="footerText">加载中...</view>
+  <view wx:elif="{{finished}}" class="footerText">没有更多了</view>
+  <view wx:else class="footerText">上滑加载更多</view>
+</view>
+
+</view>

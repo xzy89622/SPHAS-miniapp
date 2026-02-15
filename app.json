@@ -1,0 +1,19 @@
+{
+  "pages": [
+    "pages/login/login",
+    "pages/register/register",
+    "pages/index/index",
+    "pages/notice/list/list",
+    "pages/notice/detail/detail",
+    "pages/article/list/list",
+    "pages/article/detail/detail"
+    
+  ],
+  "window": {
+    "navigationBarTitleText": "SPHAS",
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTextStyle": "black"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

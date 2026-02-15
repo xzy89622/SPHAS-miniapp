@@ -1,0 +1,38 @@
+<view class="container">
+  <view class="header">
+    <view class="title">SPHAS 健康助手</view>
+    <view class="sub">请选择功能</view>
+  </view>
+
+  <view class="grid">
+    <view class="card" bindtap="goNotice">
+      <view class="cardTitle">系统公告</view>
+      <view class="cardDesc">查看平台通知与公告</view>
+    </view>
+
+    <view class="card" bindtap="goArticle">
+      <view class="cardTitle">健康科普</view>
+      <view class="cardDesc">科普文章与知识库</view>
+    </view>
+
+    <view class="card" bindtap="goMetrics">
+      <view class="cardTitle">体质记录</view>
+      <view class="cardDesc">录入与查看最新数据</view>
+    </view>
+
+    <view class="card" bindtap="goRisk">
+      <view class="cardTitle">风险预警</view>
+      <view class="cardDesc">生成风险评估与历史</view>
+    </view>
+
+    <view class="card" bindtap="goFeedback">
+      <view class="cardTitle">问题反馈</view>
+      <view class="cardDesc">提交问题与附件</view>
+    </view>
+
+    <view class="card danger" bindtap="logout">
+      <view class="cardTitle">退出登录</view>
+      <view class="cardDesc">清除 token 并返回登录页</view>
+    </view>
+  </view>
+</view>

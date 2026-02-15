@@ -1,0 +1,33 @@
+.container{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#f6f7fb;
+}
+
+.card{
+  width: 640rpx;
+  padding: 40rpx;
+  background:#fff;
+  border-radius: 24rpx;
+  box-shadow: 0 10rpx 30rpx rgba(0,0,0,0.08);
+}
+
+.title{
+  font-size: 40rpx;
+  font-weight: 700;
+  margin-bottom: 30rpx;
+}
+
+.input{
+  border:1rpx solid #eee;
+  border-radius: 16rpx;
+  padding: 22rpx;
+  margin-bottom: 20rpx;
+  background:#fafafa;
+}
+
+.btn{
+  margin-top: 10rpx;
+}

@@ -1,0 +1,12 @@
+<view class="container">
+  <view class="card">
+    <view class="title">SPHAS 健康助手</view>
+
+    <input class="input" placeholder="用户名" value="{{username}}" bindinput="onUsername" />
+    <input class="input" placeholder="密码" password value="{{password}}" bindinput="onPassword" />
+
+    <button class="btn" bindtap="onLogin">登录</button>
+
+    <view class="link" bindtap="goRegister">没有账号？去注册</view>
+  </view>
+</view>
