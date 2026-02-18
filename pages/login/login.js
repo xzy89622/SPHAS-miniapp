@@ -23,34 +23,34 @@ Page({
     const { username, password } = this.data;
   
     if (!username || !password) {
-      wx.showToast({ title: '请输入用户名和密码', icon: 'none' });
+      wx.showToast({ title: '请输入账号和密码', icon: 'none' });
       return;
     }
   
+    this.setData({ submitting: true });
+  
+    // ✅ 一定要放 try/finally，确保任何情况都能关 loading
     try {
       wx.showLoading({ title: '登录中...' });
   
-      // ✅ 对接后端：POST /api/auth/login
-      // 后端返回 data = token 字符串
       const token = await request({
         url: '/api/auth/login',
         method: 'POST',
         data: { username, password }
       });
   
-      // 保存 token
       setToken(token);
   
-      wx.hideLoading();
-      wx.showToast({ title: '登录成功', icon: 'success' });
-  
-      // 先不做首页，先跳到 index 页验证登录后的跳转
+      wx.hideLoading(); // ✅ 导航前先关
       wx.reLaunch({ url: '/pages/index/index' });
     } catch (e) {
-      wx.hideLoading();
-      // request.js 里已经 toast 过了，这里可以不重复提示
+      // ✅ request.js 已 toast 过，这里确保 loading 被关就行
+    } finally {
+      wx.hideLoading(); // ✅ 再兜底一次
+      this.setData({ submitting: false });
     }
   },
+  
   
 
   goRegister() {

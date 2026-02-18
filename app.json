@@ -6,8 +6,11 @@
     "pages/notice/list/list",
     "pages/notice/detail/detail",
     "pages/article/list/list",
-    "pages/article/detail/detail"
-    
+    "pages/article/detail/detail",
+    "pages/feedback/list/list",
+    "pages/feedback/submit/submit",
+    "pages/feedback/detail/detail",
+    "utils/time.js"
   ],
   "window": {
     "navigationBarTitleText": "SPHAS",

@@ -46,3 +46,9 @@
 .danger{
   border: 1rpx solid #ffe1e1;
 }
+page { color: #111; }
+
+/* 你的首页大标题/副标题如果有单独 class，也把它们设深 */
+.title, .subtitle, .headline {
+  color: #111;
+}

@@ -2,8 +2,8 @@
   <view class="card">
     <view class="title">SPHAS 健康助手</view>
 
-    <input class="input" placeholder="用户名" value="{{username}}" bindinput="onUsername" />
-    <input class="input" placeholder="密码" password value="{{password}}" bindinput="onPassword" />
+    <input class="input" placeholder="请输入账号" placeholder-class="ph" value="{{username}}" bindinput="onUsername" />
+   <input class="input" placeholder="请输入密码" placeholder-class="ph" password value="{{password}}" bindinput="onPassword" />
 
     <button class="btn" bindtap="onLogin">登录</button>
 

@@ -20,8 +20,8 @@ Page({
   },
 
   goFeedback() {
-    wx.showToast({ title: '下一步做反馈模块', icon: 'none' });
-  },
+    wx.navigateTo({ url: '/pages/feedback/list/list' });
+  },  
 
   logout() {
     clearToken();

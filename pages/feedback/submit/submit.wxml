@@ -1,0 +1,19 @@
+<view class="page">
+  <view class="title">提交反馈</view>
+
+  <view class="card glass">
+    <view class="label">标题</view>
+    <input class="input" placeholder="一句话描述问题" value="{{title}}" bindinput="onTitle" />
+
+    <view class="label" style="margin-top:18rpx;">内容</view>
+    <textarea class="textarea" placeholder="请详细描述（可写复现步骤/期望结果）" value="{{content}}" bindinput="onContent" />
+
+    <view class="label" style="margin-top:18rpx;">附件（最多 6 张）</view>
+    <view class="imgRow">
+      <view class="imgBox add" bindtap="chooseImage">+</view>
+      <image wx:for="{{images}}" wx:key="path" class="imgBox" mode="aspectFill" src="{{item}}" bindtap="preview" data-src="{{item}}" />
+    </view>
+
+    <button class="btn primary" loading="{{submitting}}" bindtap="onSubmit">提交</button>
+  </view>
+</view>

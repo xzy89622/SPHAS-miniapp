@@ -1,0 +1,27 @@
+<view class="page">
+  <view class="topbar">
+    <view class="title">我的反馈</view>
+    <button class="miniBtn" bindtap="goSubmit">+ 新建</button>
+  </view>
+
+  <view wx:if="{{loading}}" class="hint">加载中...</view>
+
+  <view wx:if="{{!loading && list.length === 0}}" class="empty">
+    <view class="emptyTitle">暂无反馈</view>
+    <view class="emptySub">遇到问题欢迎提交，我们会尽快处理</view>
+    <button class="btn primary" bindtap="goSubmit">去提交</button>
+  </view>
+
+  <view class="cardList" wx:else>
+    <view class="item glass" wx:for="{{list}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
+      <view class="row">
+        <view class="itTitle">{{item.title}}</view>
+        <view class="badge {{item.status === 'CLOSED' ? 'ok' : 'warn'}}">
+          {{item.status === 'CLOSED' ? '已处理' : '处理中'}}
+        </view>
+      </view>
+      <view class="itSub">{{item.content}}</view>
+      <view class="itTime">提交时间：{{item.createTime}}</view>
+    </view>
+  </view>
+</view>

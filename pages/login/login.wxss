@@ -38,3 +38,18 @@
   font-size: 28rpx;
   text-align:center;
 }
+/* ✅ 本页改成深色文字，避免全局 page 白字影响 */
+page {
+  color: #111;
+}
+
+.input {
+  background: #fff;         /* 输入框白底 */
+  color: #111;              /* ✅ 输入文字黑色 */
+  border: 1rpx solid rgba(0,0,0,.08);
+}
+
+/* ✅ placeholder 颜色 */
+.ph {
+  color: rgba(0,0,0,.35);
+}
