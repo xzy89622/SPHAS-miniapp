@@ -1,0 +1,57 @@
+<view class="wrap">
+  <view class="card">
+    <view class="title">填写今日健康数据</view>
+
+    <view class="row">
+      <view class="label">日期</view>
+      <picker mode="date" value="{{form.recordDate}}" bindchange="onDateChange">
+        <view class="picker">{{form.recordDate || '请选择日期'}}</view>
+      </picker>
+    </view>
+
+    <view class="row">
+      <view class="label">身高(cm)</view>
+      <input class="input" type="number" placeholder="例如 170" value="{{form.heightCm}}" data-k="heightCm" bindinput="onInput" />
+    </view>
+
+    <view class="row">
+      <view class="label">体重(kg)</view>
+      <input class="input" type="number" placeholder="例如 65" value="{{form.weightKg}}" data-k="weightKg" bindinput="onInput" />
+    </view>
+
+    <view class="row2">
+      <view class="row">
+        <view class="label">收缩压</view>
+        <input class="input" type="number" placeholder="例如 120" value="{{form.systolic}}" data-k="systolic" bindinput="onInput" />
+      </view>
+      <view class="row">
+        <view class="label">舒张压</view>
+        <input class="input" type="number" placeholder="例如 80" value="{{form.diastolic}}" data-k="diastolic" bindinput="onInput" />
+      </view>
+    </view>
+
+    <view class="row2">
+      <view class="row">
+        <view class="label">心率(bpm)</view>
+        <input class="input" type="number" placeholder="例如 75" value="{{form.heartRate}}" data-k="heartRate" bindinput="onInput" />
+      </view>
+      <view class="row">
+        <view class="label">步数</view>
+        <input class="input" type="number" placeholder="例如 8000" value="{{form.steps}}" data-k="steps" bindinput="onInput" />
+      </view>
+    </view>
+
+    <view class="row">
+      <view class="label">睡眠(h)</view>
+      <input class="input" type="digit" placeholder="例如 7.5" value="{{form.sleepHours}}" data-k="sleepHours" bindinput="onInput" />
+    </view>
+
+    <view class="row">
+      <view class="label">备注</view>
+      <input class="input" placeholder="可选" value="{{form.remark}}" data-k="remark" bindinput="onInput" />
+    </view>
+
+    <button class="btn" loading="{{submitting}}" bindtap="onSubmit">保存</button>
+    <button class="btn2" bindtap="goLatest">查看最近记录</button>
+  </view>
+</view>

@@ -10,9 +10,14 @@
 
     <view class="label" style="margin-top:18rpx;">附件（最多 6 张）</view>
     <view class="imgRow">
-      <view class="imgBox add" bindtap="chooseImage">+</view>
-      <image wx:for="{{images}}" wx:key="path" class="imgBox" mode="aspectFill" src="{{item}}" bindtap="preview" data-src="{{item}}" />
-    </view>
+  <view class="imgBox add" bindtap="chooseImage">+</view>
+
+  <view class="imgWrap" wx:for="{{images}}" wx:key="*this">
+    <image class="imgBox" mode="aspectFill" src="{{item}}" bindtap="preview" data-src="{{item}}" />
+    <view class="del" bindtap="removeImage" data-idx="{{index}}">×</view>
+  </view>
+</view>
+
 
     <button class="btn primary" loading="{{submitting}}" bindtap="onSubmit">提交</button>
   </view>

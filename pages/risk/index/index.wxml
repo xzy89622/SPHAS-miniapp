@@ -1,0 +1,9 @@
+<view class="wrap">
+  <view class="card">
+    <view class="t">风险预警</view>
+    <view class="d">该功能下一步对接后端风险评估接口。</view>
+
+    <button class="btn" bindtap="goLatest">先查看最近记录</button>
+    <button class="btn2" bindtap="goRecord">去录入数据</button>
+  </view>
+</view>

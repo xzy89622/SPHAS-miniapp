@@ -1,4 +1,5 @@
 const { request } = require('../../../utils/request');
+const { formatDateTime } = require('../../../utils/time');
 
 Page({
   data: {
@@ -12,6 +13,10 @@ Page({
     this.load();
   },
 
+  onPullDownRefresh() {
+    this.load().finally(() => wx.stopPullDownRefresh());
+  },
+
   async load() {
     this.setData({ loading: true });
     try {
@@ -19,6 +24,15 @@ Page({
         url: `/api/feedback/${this.data.id}/detail`,
         method: 'GET'
       });
+
+      // 统一时间格式
+      if (detail && detail.feedback) {
+        detail.feedback._time = formatDateTime(detail.feedback.createTime || detail.feedback.createdAt);
+      }
+      (detail.replies || []).forEach(r => {
+        r._time = formatDateTime(r.createTime || r.createdAt);
+      });
+
       this.setData({ detail });
     } catch (e) {
     } finally {

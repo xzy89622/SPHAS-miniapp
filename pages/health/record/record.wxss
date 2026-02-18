@@ -1,0 +1,10 @@
+.wrap{padding:24rpx;background:#f6f7fb;min-height:100vh;}
+.card{background:#fff;border-radius:20rpx;padding:28rpx;box-shadow:0 8rpx 24rpx rgba(0,0,0,.06);}
+.title{font-size:34rpx;font-weight:700;margin-bottom:18rpx;}
+.row{display:flex;align-items:center;padding:14rpx 0;border-bottom:1rpx solid #f0f0f0;}
+.row2{display:flex;gap:18rpx;}
+.label{width:160rpx;color:#333;font-size:28rpx;}
+.input{flex:1;background:#f7f8fa;border-radius:14rpx;padding:16rpx 18rpx;font-size:28rpx;}
+.picker{flex:1;background:#f7f8fa;border-radius:14rpx;padding:18rpx;font-size:28rpx;color:#333;}
+.btn{margin-top:22rpx;border-radius:16rpx;}
+.btn2{margin-top:14rpx;border-radius:16rpx;background:#ffffff;border:1rpx solid #e6e6e6;color:#333;}

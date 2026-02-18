@@ -9,7 +9,7 @@
       </view>
     </view>
 
-    <view class="sub">提交时间：{{detail.feedback.createTime}}</view>
+    <view class="sub">提交时间：{{detail.feedback._time}}</view>
     <view class="content">{{detail.feedback.content}}</view>
 
     <view wx:if="{{detail.attachments && detail.attachments.length}}" class="sec">
@@ -26,7 +26,7 @@
       <view class="reply" wx:for="{{detail.replies}}" wx:key="id">
         <view class="rTop">
           <view class="rRole">{{item.senderRole}}</view>
-          <view class="rTime">{{item.createTime}}</view>
+          <view class="rTime">{{item._time}}</view>
         </view>
         <view class="rText">{{item.content}}</view>
       </view>

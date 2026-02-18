@@ -10,7 +10,9 @@
     "pages/feedback/list/list",
     "pages/feedback/submit/submit",
     "pages/feedback/detail/detail",
-    "utils/time.js"
+    "pages/health/record/record",
+    "pages/health/latest/latest",
+    "pages/risk/index/index"
   ],
   "window": {
     "navigationBarTitleText": "SPHAS",

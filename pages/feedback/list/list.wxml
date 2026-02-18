@@ -20,8 +20,8 @@
           {{item.status === 'CLOSED' ? '已处理' : '处理中'}}
         </view>
       </view>
-      <view class="itSub">{{item.content}}</view>
-      <view class="itTime">提交时间：{{item.createTime}}</view>
+      <view class="badge {{item._statusClass}}">{{item._statusText}}</view>
+      <view class="itTime">提交时间：{{item._time}}</view>
     </view>
   </view>
 </view>

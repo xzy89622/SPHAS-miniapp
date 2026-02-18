@@ -1,4 +1,5 @@
 const { request } = require('../../../utils/request');
+const { formatDateTime } = require('../../../utils/time');
 
 Page({
   data: {
@@ -10,14 +11,25 @@ Page({
     this.load();
   },
 
+  onPullDownRefresh() {
+    this.load().finally(() => wx.stopPullDownRefresh());
+  },
+
   async load() {
     this.setData({ loading: true });
     try {
       const list = await request({ url: '/api/feedback/my', method: 'GET' });
-      // 后端直接返回 List<Feedback>
-      this.setData({ list: list || [] });
+
+      const mapped = (list || []).map(x => ({
+        ...x,
+        // 统一字段兼容：createTime / createdAt
+        _time: formatDateTime(x.createTime || x.createdAt),
+        _statusText: x.status === 'CLOSED' ? '已处理' : (x.status === 'OPEN' ? '待处理' : '处理中'),
+        _statusClass: x.status === 'CLOSED' ? 'ok' : 'warn'
+      }));
+
+      this.setData({ list: mapped });
     } catch (e) {
-      // request.js 已处理 toast
     } finally {
       this.setData({ loading: false });
     }

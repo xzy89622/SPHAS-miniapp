@@ -15,19 +15,22 @@
       <view class="cardDesc">科普文章与知识库</view>
     </view>
 
-    <view class="card" bindtap="goMetrics">
+    <!-- ✅ 体质记录：去录入页 -->
+    <view class="card" bindtap="goRecord">
       <view class="cardTitle">体质记录</view>
-      <view class="cardDesc">录入与查看最新数据</view>
+      <view class="cardDesc">录入今日数据</view>
     </view>
 
+    <!-- ✅ 风险预警：先去风险页（我们下面会做一个“占位风险页”） -->
     <view class="card" bindtap="goRisk">
       <view class="cardTitle">风险预警</view>
       <view class="cardDesc">生成风险评估与历史</view>
     </view>
 
-    <view class="card" bindtap="goFeedback">
-      <view class="cardTitle">问题反馈</view>
-      <view class="cardDesc">提交问题与附件</view>
+    <!-- ✅ 最近记录：你也可以保留一个入口更顺手 -->
+    <view class="card" bindtap="goLatest">
+      <view class="cardTitle">最近记录</view>
+      <view class="cardDesc">查看近 7 条数据</view>
     </view>
 
     <view class="card danger" bindtap="logout">

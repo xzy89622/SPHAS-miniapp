@@ -1,0 +1,31 @@
+<view class="wrap">
+  <view class="topbar">
+    <view class="h1">最近健康记录</view>
+    <view class="actions">
+      <button class="primaryBtn" bindtap="goRecord">去录入</button>
+    </view>
+  </view>
+
+  <view wx:if="{{loading}}" class="hint">加载中...</view>
+
+  <view wx:if="{{!loading && list.length===0}}" class="hint">
+    暂无记录，先去录入一条吧
+  </view>
+
+  <view wx:for="{{list}}" wx:key="id" class="item" bindtap="edit" data-date="{{item.recordDate}}">
+    <view class="row">
+      <view class="date">{{item.recordDate}}</view>
+      <view class="tag" wx:if="{{item.weightKg}}">体重 {{item.weightKg}}kg</view>
+    </view>
+
+    <view class="grid">
+      <view class="g" wx:if="{{item.heightCm}}">身高：{{item.heightCm}}cm</view>
+      <view class="g" wx:if="{{item.systolic && item.diastolic}}">血压：{{item.systolic}}/{{item.diastolic}}</view>
+      <view class="g" wx:if="{{item.heartRate}}">心率：{{item.heartRate}}</view>
+      <view class="g" wx:if="{{item.steps}}">步数：{{item.steps}}</view>
+      <view class="g" wx:if="{{item.sleepHours}}">睡眠：{{item.sleepHours}}h</view>
+    </view>
+
+    <view class="remark" wx:if="{{item.remark}}">备注：{{item.remark}}</view>
+  </view>
+</view>

@@ -1,0 +1,7 @@
+.wrap{padding:24rpx;background:#f6f7fb;min-height:100vh;}
+.card{background:#fff;border-radius:20rpx;padding:28rpx;box-shadow:0 8rpx 24rpx rgba(0,0,0,.06);}
+.t{font-size:34rpx;font-weight:700;margin-bottom:10rpx;}
+.d{color:#666;font-size:28rpx;margin-bottom:22rpx;}
+.btn{border-radius:16rpx;background:#2f6bff;color:#fff;}
+.btn::after{border:none;}
+.btn2{margin-top:14rpx;border-radius:16rpx;background:#fff;border:1rpx solid #e6e6e6;color:#333;}
