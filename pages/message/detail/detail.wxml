@@ -1,0 +1,8 @@
+<view class="wrap">
+  <view class="title">{{msg.title}}</view>
+  <view class="meta">
+    <text>{{msg.type}}</text>
+    <text>{{msg.createTime}}</text>
+  </view>
+  <view class="content">{{msg.content}}</view>
+</view>

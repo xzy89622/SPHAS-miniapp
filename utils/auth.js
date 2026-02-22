@@ -1,34 +1,24 @@
 // utils/auth.js
-// 作用：统一管理 token（存/取/清除）
-// 以后所有页面都只通过这里操作 token，避免到处写 wx.getStorageSync
+const api = require("./request");
 
-const TOKEN_KEY = 'SPHAS_TOKEN';
-
-/**
- * 获取本地 token
- * @returns {string} token 字符串，没有则返回空字符串
- */
-function getToken() {
-  return wx.getStorageSync(TOKEN_KEY) || '';
+// ✅ 登录（根据你后端实际接口路径修改）
+// 如果你后端是 /api/auth/login 就不用改
+function login(username, password) {
+  return api.post("/api/auth/login", { username, password });
 }
 
-/**
- * 保存 token 到本地
- * @param {string} token
- */
-function setToken(token) {
-  wx.setStorageSync(TOKEN_KEY, token);
+// ✅ 注册（如果你用得到）
+function register(username, password) {
+  return api.post("/api/auth/register", { username, password });
 }
 
-/**
- * 清除本地 token
- */
-function clearToken() {
-  wx.removeStorageSync(TOKEN_KEY);
+// ✅ 获取当前登录用户信息（如果后端有这个接口）
+function profile() {
+  return api.get("/api/user/profile");
 }
 
 module.exports = {
-  getToken,
-  setToken,
-  clearToken
+  login,
+  register,
+  profile,
 };

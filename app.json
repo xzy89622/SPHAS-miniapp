@@ -12,7 +12,10 @@
     "pages/feedback/detail/detail",
     "pages/health/record/record",
     "pages/health/latest/latest",
-    "pages/risk/index/index"
+    "pages/risk/index/index",
+    "pages/message/list/list",
+    "pages/message/detail/detail",
+    "pages/dashboard/index"
   ],
   "window": {
     "navigationBarTitleText": "SPHAS",

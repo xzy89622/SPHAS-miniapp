@@ -1,0 +1,9 @@
+.wrap { padding: 12px; }
+.tabs { display:flex; gap:10px; margin-bottom:12px; }
+.tab { padding:8px 12px; border-radius:10px; background:#f3f4f6; }
+.on { background:#111827; color:#fff; }
+.card { background:#fff; border-radius:12px; padding:12px; margin-bottom:10px; box-shadow:0 2px 10px rgba(0,0,0,.04); }
+.t { font-weight:700; margin-bottom:6px; }
+.c { color:#555; font-size:13px; }
+.b { display:flex; justify-content:space-between; margin-top:10px; font-size:12px; color:#888; }
+.empty { padding:60px 0; text-align:center; color:#999; }

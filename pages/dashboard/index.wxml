@@ -1,0 +1,56 @@
+<view class="page">
+  <!-- 顶部标题 + 刷新 -->
+  <view class="header">
+    <view class="title">健康数据看板</view>
+    <view class="sub">实时概览 + 最近趋势</view>
+    <button class="btn" size="mini" bindtap="reload">刷新</button>
+  </view>
+
+  <!-- 统计卡片 -->
+  <view class="cards">
+    <view class="card">
+      <view class="label">累计健康记录</view>
+      <view class="value">{{overview.totalRecords}}</view>
+    </view>
+    <view class="card">
+      <view class="label">今日打卡</view>
+      <view class="value">{{overview.todayRecords}}</view>
+    </view>
+    <view class="card">
+      <view class="label">进行中挑战</view>
+      <view class="value">{{overview.activeChallenges}}</view>
+    </view>
+    <view class="card">
+      <view class="label">积分总计</view>
+      <view class="value">{{overview.totalPoints}}</view>
+    </view>
+  </view>
+
+  <!-- 趋势区 -->
+  <view class="panel">
+    <view class="panel-title">
+      <text>最近 7 天趋势</text>
+      <text class="hint">（示例：体重/打卡次数/热量等，取决于后端 trend 返回）</text>
+    </view>
+
+    <!-- 简单折线图 -->
+    <canvas
+      class="chart"
+      canvas-id="trendCanvas"
+      id="trendCanvas"
+      type="2d"
+    ></canvas>
+
+    <!-- 列表展示（兜底，防止你后端字段不一样也能看到数据） -->
+    <view class="trend-list">
+      <view class="trend-item" wx:for="{{trendList}}" wx:key="date">
+        <text class="date">{{item.date}}</text>
+        <text class="val">{{item.value}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 状态提示 -->
+  <view class="status" wx:if="{{loading}}">加载中...</view>
+  <view class="status err" wx:if="{{!loading && errorMsg}}">{{errorMsg}}</view>
+</view>

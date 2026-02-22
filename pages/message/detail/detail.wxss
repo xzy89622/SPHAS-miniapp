@@ -1,0 +1,4 @@
+.wrap { padding: 14px; }
+.title { font-size:18px; font-weight:800; margin-bottom:10px; }
+.meta { display:flex; justify-content:space-between; color:#888; font-size:12px; margin-bottom:14px; }
+.content { background:#fff; border-radius:12px; padding:12px; line-height:1.6; }

@@ -1,0 +1,21 @@
+<view class="wrap">
+  <view class="tabs">
+    <view class="tab {{tab===0?'on':''}}" bindtap="setTab" data-tab="0">未读</view>
+    <view class="tab {{tab===1?'on':''}}" bindtap="setTab" data-tab="1">已读</view>
+  </view>
+
+  <block wx:if="{{list.length===0}}">
+    <view class="empty">暂无消息</view>
+  </block>
+
+  <block wx:for="{{list}}" wx:key="id">
+    <view class="card" bindtap="goDetail" data-id="{{item.id}}">
+      <view class="t">{{item.title}}</view>
+      <view class="c">{{item.content}}</view>
+      <view class="b">
+        <text class="type">{{item.type}}</text>
+        <text class="time">{{item.createTime}}</text>
+      </view>
+    </view>
+  </block>
+</view>

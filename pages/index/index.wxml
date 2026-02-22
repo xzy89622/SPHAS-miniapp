@@ -40,5 +40,11 @@
       <view class="cardTitle">退出登录</view>
       <view class="cardDesc">清除 token 并返回登录页</view>
     </view>
+
+    <!-- 健康数据看板 -->
+<view class="card" bindtap="goDashboard">
+  <view class="cardTitle">健康数据看板</view>
+  <view class="cardDesc">查看总览与最近趋势</view>
+</view>
   </view>
 </view>
