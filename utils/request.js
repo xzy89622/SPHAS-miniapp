@@ -1,41 +1,76 @@
 // utils/request.js
-// 兼容两种写法：
-// 1) request("GET", "/api/xx", data)
-// 2) request({ url:"/api/xx", method:"GET", data:{}, header:{} })
-// 并支持动态 BASE_URL：优先读 Storage 的 BASE_URL
+// 统一请求封装（真机可用）
+// 规则：Storage(BASE_URL) 优先；否则用 DEFAULT_BASE_URL；严禁真机默认 localhost
+
+const KEY_BASE_URL = "BASE_URL";
+
+// ✅ 改成你的电脑 WLAN IPv4 + 端口（你截图里是 10.20.65.137）
+const DEFAULT_BASE_URL = "http://10.20.65.137:8080";
+
+// 是否允许在“开发者工具”里用 localhost（真机不允许）
+const ALLOW_LOCALHOST_IN_DEVTOOLS = true;
+
+function isDevtools() {
+  // 开发者工具环境
+  return wx.getSystemInfoSync().platform === "devtools";
+}
+
+function normalizeBaseUrl(url) {
+  if (!url) return "";
+  let u = String(url).trim();
+  u = u.replace(/\/+$/, ""); // 去掉末尾 /
+  return u;
+}
+
+function isValidHttpUrl(url) {
+  return /^https?:\/\/[^/]+(:\d+)?$/i.test(url);
+}
+
+function isLocalhost(url) {
+  return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(url);
+}
 
 function getBaseUrl() {
-  const stored = wx.getStorageSync("BASE_URL");
-  if (stored) return stored;
+  const stored = normalizeBaseUrl(wx.getStorageSync(KEY_BASE_URL));
+  let baseUrl = stored || normalizeBaseUrl(DEFAULT_BASE_URL);
 
-  const app = getApp && getApp();
-  if (app && app.globalData && app.globalData.BASE_URL) return app.globalData.BASE_URL;
+  if (!isValidHttpUrl(baseUrl)) {
+    // 非法就清空，走错误提示
+    baseUrl = "";
+  }
 
-  // 兜底（开发者工具可用）
-  return "http://localhost:8080";
+  // 真机禁止 localhost；开发者工具按开关决定
+  if (baseUrl && isLocalhost(baseUrl)) {
+    if (isDevtools() && ALLOW_LOCALHOST_IN_DEVTOOLS) {
+      return baseUrl;
+    }
+    // 真机 or 不允许 devtools localhost
+    return "";
+  }
+
+  return baseUrl;
 }
 
 function getToken() {
   return wx.getStorageSync("token") || "";
 }
 
-function buildAuthHeader(token) {
-  if (!token) return {};
-  if (String(token).toLowerCase().startsWith("bearer ")) return { Authorization: token };
-  return { Authorization: `Bearer ${token}` };
+function buildAuthHeader(headers = {}) {
+  const token = getToken();
+  if (token) {
+    return { ...headers, Authorization: token };
+  }
+  return headers;
 }
 
-function assertUrl(url) {
-  if (!url || typeof url !== "string") {
-    console.error("request url is invalid =>", url);
-    console.trace("request url invalid trace");
-    wx.showToast({ title: "请求路径为空(url)", icon: "none" });
-    return false;
-  }
-  if (!url.startsWith("/")) {
-    console.error("request url must start with / =>", url);
-    console.trace("request url format trace");
-    wx.showToast({ title: "请求路径必须以/开头", icon: "none" });
+function assertRequestReady(baseUrl) {
+  if (!baseUrl) {
+    wx.showModal({
+      title: "接口地址未配置",
+      content:
+        "请配置 BASE_URL（例如 http://10.20.65.137:8080），真机不能使用 localhost。",
+      showCancel: false,
+    });
     return false;
   }
   return true;
@@ -43,102 +78,60 @@ function assertUrl(url) {
 
 function coreRequest(method, url, data = {}, extra = {}) {
   return new Promise((resolve, reject) => {
-    if (!assertUrl(url)) return reject({ msg: "invalid url", url });
-
     const baseUrl = getBaseUrl();
+    if (!assertRequestReady(baseUrl)) {
+      return reject({ msg: "BASE_URL not set", url });
+    }
+
     const fullUrl = baseUrl + url;
-    const token = getToken();
+    const header = buildAuthHeader(extra.header || {});
 
     wx.request({
       url: fullUrl,
       method,
       data,
-      header: {
-        "Content-Type": "application/json",
-        ...buildAuthHeader(token),
-        ...(extra.header || {})
-      },
+      header,
+      timeout: extra.timeout || 15000,
       success(res) {
-        const d = res.data;
-
-        // 兼容统一返回：{ code, msg, data }
-        if (d && typeof d === "object" && "code" in d) {
-          if (d.code === 0 || d.code === 200) return resolve(d.data);
-          wx.showToast({ title: d.msg || "请求失败", icon: "none" });
-          return reject(d);
+        // 兼容你后端的返回结构：{ code, msg, data }
+        const body = res.data;
+        if (body && typeof body === "object" && "code" in body) {
+          if (body.code === 200 || body.code === 0) return resolve(body.data);
+          wx.showToast({ title: body.msg || "请求失败", icon: "none" });
+          return reject(body);
         }
-
-        resolve(d);
+        // 如果后端不是这种结构，直接返回整个 res.data
+        return resolve(body);
       },
       fail(err) {
-        console.error("wx.request fail =>", fullUrl, err);
-        wx.showToast({ title: "网络错误", icon: "none" });
+        console.error("wx.request fail:", fullUrl, err);
+        wx.showToast({ title: "网络错误，请检查后端/防火墙", icon: "none" });
         reject(err);
-      }
+      },
     });
   });
 }
 
-// ✅ 关键：同时兼容两种入参
-function request(arg1, arg2, arg3, arg4) {
-  // 写法2：request({ url, method, data, header })
-  if (arg1 && typeof arg1 === "object" && !Array.isArray(arg1)) {
-    const opt = arg1;
-    const method = String(opt.method || "GET").toUpperCase();
-    const url = opt.url || opt.path || opt.endpoint; // 兼容别名
-    const data = opt.data || {};
-    const extra = { header: opt.header || {} };
-    return coreRequest(method, url, data, extra);
-  }
-
-  // 写法1：request(method, url, data, extra)
-  const method = String(arg1 || "GET").toUpperCase();
-  const url = arg2;
-  const data = arg3 || {};
-  const extra = arg4 || {};
+function request(args) {
+  // 兼容你原来的调用方式 request({ url, method, data, header })
+  const method = (args.method || "GET").toUpperCase();
+  const url = args.url || "";
+  const data = args.data || {};
+  const extra = { header: args.header || {}, timeout: args.timeout };
   return coreRequest(method, url, data, extra);
 }
 
-function upload(url, filePath, name = "file", formData = {}, extra = {}) {
-  return new Promise((resolve, reject) => {
-    if (!assertUrl(url)) return reject({ msg: "invalid url", url });
-
-    const baseUrl = getBaseUrl();
-    const fullUrl = baseUrl + url;
-    const token = getToken();
-
-    wx.uploadFile({
-      url: fullUrl,
-      filePath,
-      name,
-      formData,
-      header: {
-        ...buildAuthHeader(token),
-        ...(extra.header || {})
-      },
-      success(res) {
-        try {
-          const d = JSON.parse(res.data || "{}");
-          if (d.code === 0 || d.code === 200) return resolve(d.data);
-          wx.showToast({ title: d.msg || "上传失败", icon: "none" });
-          reject(d);
-        } catch (e) {
-          reject(e);
-        }
-      },
-      fail(err) {
-        console.error("wx.uploadFile fail =>", fullUrl, err);
-        wx.showToast({ title: "上传失败", icon: "none" });
-        reject(err);
-      }
-    });
-  });
+function get(url, data, extra = {}) {
+  return coreRequest("GET", url, data || {}, extra);
+}
+function post(url, data, extra = {}) {
+  return coreRequest("POST", url, data || {}, extra);
 }
 
 module.exports = {
   request,
-  get: (url, data, extra) => coreRequest("GET", url, data, extra),
-  post: (url, data, extra) => coreRequest("POST", url, data, extra),
-  upload,
-  getToken
+  get,
+  post,
+  // 方便你调试
+  _getBaseUrl: getBaseUrl,
 };
