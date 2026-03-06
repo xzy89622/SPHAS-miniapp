@@ -15,7 +15,9 @@
     "pages/risk/index/index",
     "pages/message/list/list",
     "pages/message/detail/detail",
-    "pages/dashboard/index"
+    "pages/dashboard/index",
+    "pages/assessment/index/index",
+    "pages/recommend/today/index"
   ],
   "window": {
     "navigationBarTitleText": "SPHAS",

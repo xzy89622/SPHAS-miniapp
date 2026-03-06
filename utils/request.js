@@ -1,137 +1,147 @@
 // utils/request.js
-// 统一请求封装（真机可用）
-// 规则：Storage(BASE_URL) 优先；否则用 DEFAULT_BASE_URL；严禁真机默认 localhost
+// 目标：
+// 1) 所有请求自动带 token（Bearer）
+// 2) 兼容后端 code/msg 结构（0/200 都算成功）
+// 3) 失败时把原因打印出来，页面不再只显示“加载失败”
+// 4) ✅ 兼容旧代码：const { request } = require('.../utils/request')
 
-const KEY_BASE_URL = "BASE_URL";
-
-// ✅ 改成你的电脑 WLAN IPv4 + 端口（你截图里是 10.20.65.137）
-const DEFAULT_BASE_URL = "http://10.20.65.137:8080";
-
-// 是否允许在“开发者工具”里用 localhost（真机不允许）
-const ALLOW_LOCALHOST_IN_DEVTOOLS = true;
-
-function isDevtools() {
-  // 开发者工具环境
-  return wx.getSystemInfoSync().platform === "devtools";
-}
+const KEY_BASE_URL = 'BASE_URL';
+const TIMEOUT = 15000;
 
 function normalizeBaseUrl(url) {
-  if (!url) return "";
-  let u = String(url).trim();
-  u = u.replace(/\/+$/, ""); // 去掉末尾 /
-  return u;
-}
-
-function isValidHttpUrl(url) {
-  return /^https?:\/\/[^/]+(:\d+)?$/i.test(url);
-}
-
-function isLocalhost(url) {
-  return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(url);
+  if (!url) return '';
+  return String(url).trim().replace(/\/+$/, '');
 }
 
 function getBaseUrl() {
   const stored = normalizeBaseUrl(wx.getStorageSync(KEY_BASE_URL));
-  let baseUrl = stored || normalizeBaseUrl(DEFAULT_BASE_URL);
+  if (stored) return stored;
+  return '';
+}
 
-  if (!isValidHttpUrl(baseUrl)) {
-    // 非法就清空，走错误提示
-    baseUrl = "";
-  }
-
-  // 真机禁止 localhost；开发者工具按开关决定
-  if (baseUrl && isLocalhost(baseUrl)) {
-    if (isDevtools() && ALLOW_LOCALHOST_IN_DEVTOOLS) {
-      return baseUrl;
-    }
-    // 真机 or 不允许 devtools localhost
-    return "";
-  }
-
-  return baseUrl;
+function buildUrl(path) {
+  const base = getBaseUrl();
+  const p = String(path || '').trim();
+  if (!base) return p;
+  if (!p) return base;
+  if (p.startsWith('http://') || p.startsWith('https://')) return p;
+  if (p.startsWith('/')) return base + p;
+  return base + '/' + p;
 }
 
 function getToken() {
-  return wx.getStorageSync("token") || "";
+  // ✅ 你现在 token 是存到 'token' 里（你截图验证过了）
+  return wx.getStorageSync('token')
+    || wx.getStorageSync('access_token')
+    || wx.getStorageSync('Authorization')
+    || '';
 }
 
-function buildAuthHeader(headers = {}) {
+function isSuccessCode(code) {
+  return code === 0 || code === 200 || code === '0' || code === '200';
+}
+
+function pickMsg(data, defaultMsg) {
+  if (!data) return defaultMsg || '请求失败';
+  return data.msg || data.message || data.error || defaultMsg || '请求失败';
+}
+
+function logFail(tag, detail) {
+  console.error(`[request:${tag}]`, detail);
+}
+
+// ✅ 核心请求函数（旧页面很多是 request({url, method, data}) 这么调）
+function request(options) {
+  const opt = options || {};
+  const method = (opt.method || 'GET').toUpperCase();
+  const url = buildUrl(opt.url || opt.path || '');
+
+  const header = Object.assign(
+    { 'content-type': 'application/json' },
+    opt.header || opt.headers || {}
+  );
+
+  // ✅ 自动挂 Bearer
   const token = getToken();
-  if (token) {
-    return { ...headers, Authorization: token };
+  if (token && !header.Authorization && !header.authorization) {
+    header.Authorization = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
   }
-  return headers;
-}
 
-function assertRequestReady(baseUrl) {
-  if (!baseUrl) {
-    wx.showModal({
-      title: "接口地址未配置",
-      content:
-        "请配置 BASE_URL（例如 http://10.20.65.137:8080），真机不能使用 localhost。",
-      showCancel: false,
-    });
-    return false;
-  }
-  return true;
-}
+  const data = opt.data || opt.body || {};
 
-function coreRequest(method, url, data = {}, extra = {}) {
   return new Promise((resolve, reject) => {
-    const baseUrl = getBaseUrl();
-    if (!assertRequestReady(baseUrl)) {
-      return reject({ msg: "BASE_URL not set", url });
+    if (!url) {
+      const err = { msg: 'BASE_URL 没配置，url 也为空' };
+      logFail('no_url', { opt, err });
+      reject(err);
+      return;
     }
 
-    const fullUrl = baseUrl + url;
-    const header = buildAuthHeader(extra.header || {});
-
     wx.request({
-      url: fullUrl,
+      url,
       method,
       data,
       header,
-      timeout: extra.timeout || 15000,
-      success(res) {
-        // 兼容你后端的返回结构：{ code, msg, data }
+      timeout: opt.timeout || TIMEOUT,
+      success: (res) => {
+        const status = res.statusCode;
         const body = res.data;
-        if (body && typeof body === "object" && "code" in body) {
-          if (body.code === 200 || body.code === 0) return resolve(body.data);
-          wx.showToast({ title: body.msg || "请求失败", icon: "none" });
-          return reject(body);
+
+        // 1) HTTP 层失败
+        if (status < 200 || status >= 300) {
+          const err = { msg: `HTTP ${status}`, statusCode: status, url, body };
+          logFail('http_error', err);
+          wx.showToast({ title: err.msg, icon: 'none' });
+          reject(err);
+          return;
         }
-        // 如果后端不是这种结构，直接返回整个 res.data
-        return resolve(body);
+
+        // 2) 标准返回：{ code, msg, data }
+        if (body && typeof body === 'object' && Object.prototype.hasOwnProperty.call(body, 'code')) {
+          if (isSuccessCode(body.code)) {
+            resolve(body.data !== undefined ? body.data : body);
+            return;
+          }
+
+          const msg = pickMsg(body, '业务失败');
+          const err = { msg, code: body.code, url, body };
+          logFail('biz_error', err);
+
+          if (body.code === 401 || body.code === '401' || /token|登录|auth/i.test(msg)) {
+            wx.showToast({ title: '登录已过期，请重新登录', icon: 'none' });
+          } else {
+            wx.showToast({ title: msg, icon: 'none' });
+          }
+
+          reject(err);
+          return;
+        }
+
+        // 3) 非标准返回（数组/字符串等）直接当成功
+        resolve(body);
       },
-      fail(err) {
-        console.error("wx.request fail:", fullUrl, err);
-        wx.showToast({ title: "网络错误，请检查后端/防火墙", icon: "none" });
+      fail: (e) => {
+        const err = {
+          msg: e && e.errMsg ? e.errMsg : '网络请求失败',
+          url,
+          method,
+          data
+        };
+        logFail('network_fail', err);
+        wx.showToast({ title: err.msg, icon: 'none' });
         reject(err);
-      },
+      }
     });
   });
 }
 
-function request(args) {
-  // 兼容你原来的调用方式 request({ url, method, data, header })
-  const method = (args.method || "GET").toUpperCase();
-  const url = args.url || "";
-  const data = args.data || {};
-  const extra = { header: args.header || {}, timeout: args.timeout };
-  return coreRequest(method, url, data, extra);
-}
+// ✅ 给你更方便的写法：api.get('/api/xxx')
+request.get = (url, data, options) => request(Object.assign({}, options, { url, data, method: 'GET' }));
+request.post = (url, data, options) => request(Object.assign({}, options, { url, data, method: 'POST' }));
+request.put = (url, data, options) => request(Object.assign({}, options, { url, data, method: 'PUT' }));
+request.delete = (url, data, options) => request(Object.assign({}, options, { url, data, method: 'DELETE' }));
 
-function get(url, data, extra = {}) {
-  return coreRequest("GET", url, data || {}, extra);
-}
-function post(url, data, extra = {}) {
-  return coreRequest("POST", url, data || {}, extra);
-}
+// ✅ 关键：兼容旧代码写法：const { request } = require('.../utils/request')
+request.request = request;
 
-module.exports = {
-  request,
-  get,
-  post,
-  // 方便你调试
-  _getBaseUrl: getBaseUrl,
-};
+module.exports = request;

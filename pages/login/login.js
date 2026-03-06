@@ -1,8 +1,5 @@
 // pages/login/login.js
-// 说明：
-// 1) login.wxml 里按钮 bindtap="onLogin"，所以这里必须有 onLogin 方法
-// 2) 项目 app.json 没有 tabBar，所以不要 switchTab，直接 reLaunch
-// 3) 统一调用 auth.login()，拿到 token 存起来
+// 登录页：把后端返回的 msg 直接提示出来（不再只显示“登录失败”）
 
 const auth = require("../../utils/auth");
 
@@ -21,12 +18,10 @@ Page({
     this.setData({ password: e.detail.value });
   },
 
-  // ✅ 兼容 wxml：bindtap="onLogin"
   onLogin() {
     this.doLogin();
   },
 
-  // ✅ “没有账号？去注册”
   goRegister() {
     wx.navigateTo({ url: "/pages/register/register" });
   },
@@ -45,7 +40,6 @@ Page({
     this.setData({ loading: true });
 
     try {
-      // 调后端 /api/auth/login
       const token = await auth.login(username, password);
 
       if (!token) {
@@ -53,16 +47,23 @@ Page({
         return;
       }
 
-      // 存 token
       wx.setStorageSync("token", token);
 
       wx.showToast({ title: "登录成功", icon: "success" });
 
-      // ✅ 这个项目没 tabBar，所以用 reLaunch
       wx.reLaunch({ url: "/pages/index/index" });
     } catch (e) {
+      // ✅ 关键：把真实错误信息吐出来
       console.error("login error =>", e);
-      wx.showToast({ title: "登录失败", icon: "none" });
+
+      // 后端 reject(body) 时，body 里一般有 msg/code
+      const msg =
+        (e && e.msg) ||
+        (e && e.errMsg) ||
+        (e && e.message) ||
+        "登录失败";
+
+      wx.showToast({ title: msg, icon: "none" });
     } finally {
       this.setData({ loading: false });
     }

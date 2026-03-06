@@ -1,0 +1,13 @@
+.page { padding: 24rpx; }
+.card { background: #fff; border-radius: 18rpx; padding: 24rpx; margin-bottom: 18rpx; }
+.title { font-size: 34rpx; font-weight: 600; margin-bottom: 10rpx; }
+.tip { color: #666; font-size: 26rpx; }
+
+.loading { color: #666; padding: 20rpx; }
+.empty { color: #999; padding: 40rpx 0; text-align: center; }
+.empty-tip { font-size: 24rpx; margin-top: 8rpx; color: #aaa; }
+.error { color: #d93026; padding: 30rpx; text-align: center; }
+
+.item { background: #fff; border-radius: 18rpx; padding: 22rpx; margin-bottom: 14rpx; }
+.item-title { font-weight: 600; margin-bottom: 10rpx; }
+.item-desc { color: #444; line-height: 1.6; }
