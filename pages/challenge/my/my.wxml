@@ -1,0 +1,13 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="status">加载中...</view>
+  <view wx:if="{{!loading && errMsg}}" class="status err">{{errMsg}}</view>
+  <view wx:if="{{!loading && list.length === 0 && !errMsg}}" class="status">你还没有参加挑战</view>
+
+  <block wx:for="{{list}}" wx:key="id">
+    <view class="card" bindtap="goDetail" data-id="{{item.challengeId || item.id}}">
+      <view class="name">{{item.challengeTitle || item.title || item.name}}</view>
+      <view class="line">进度：{{item.progressValue || item.progress || 0}}</view>
+      <view class="line">状态：{{item.finished ? '已完成' : '进行中'}}</view>
+    </view>
+  </block>
+</view>

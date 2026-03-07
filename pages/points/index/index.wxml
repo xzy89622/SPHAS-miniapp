@@ -1,0 +1,62 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="card">
+    <view class="empty">加载中...</view>
+  </view>
+
+  <view wx:if="{{errMsg}}" class="card">
+    <view class="error">{{errMsg}}</view>
+  </view>
+
+  <view class="card">
+    <view class="title">我的积分</view>
+    <view class="big">{{summary.totalPoints || 0}}</view>
+    <view class="tip">通过挑战、发帖、评论、点赞等行为获得积分</view>
+    <view class="tip">我的排名：{{myRank.rank || '未上榜'}}</view>
+  </view>
+
+  <view class="card">
+    <view class="sub-title">我的徽章</view>
+
+    <view wx:if="{{badges.length === 0}}" class="empty">暂未获得徽章</view>
+
+    <view class="badge-list">
+      <view wx:for="{{badges}}" wx:key="id" class="badge-item">
+        <view class="badge-name">{{item.showName}}</view>
+        <view class="badge-desc">{{item.showDesc}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="sub-title">积分排行榜</view>
+
+    <view wx:if="{{leaderboard.length === 0}}" class="empty">暂无排行数据</view>
+
+    <block wx:for="{{leaderboard}}" wx:key="userId">
+      <view class="rank-item">
+        <text>第{{item.showRank}}名</text>
+        <text>{{item.showName}}</text>
+        <text>{{item.showPoints}}</text>
+      </view>
+    </block>
+  </view>
+
+  <view class="card">
+    <view class="sub-title">积分流水</view>
+
+    <view wx:if="{{records.length === 0}}" class="empty">暂无积分记录</view>
+
+    <block wx:for="{{records}}" wx:key="id">
+      <view class="record-item">
+        <view class="left">
+          <view class="r-type">{{item.typeText}}</view>
+          <view class="r-remark">{{item.remark || item.reason || ''}}</view>
+        </view>
+        <view class="right">
+          <view class="r-points">{{item.pointsText}}</view>
+          <view class="r-time">{{item.timeText}}</view>
+        </view>
+      </view>
+    </block>
+  </view>
+</view>

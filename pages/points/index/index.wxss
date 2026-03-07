@@ -1,0 +1,109 @@
+.page {
+  padding: 24rpx;
+  background: #f7f8fa;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  margin-bottom: 18rpx;
+  box-sizing: border-box;
+}
+
+.title {
+  font-size: 38rpx;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 14rpx;
+}
+
+.sub-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 16rpx;
+}
+
+.big {
+  font-size: 72rpx;
+  line-height: 1.2;
+  font-weight: 700;
+  color: #22c55e;
+  margin-bottom: 10rpx;
+}
+
+.tip,
+.empty,
+.badge-desc,
+.r-remark,
+.r-time {
+  color: #999;
+  font-size: 24rpx;
+  line-height: 1.7;
+}
+
+.error {
+  color: #e64340;
+  font-size: 26rpx;
+}
+
+.badge-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+}
+
+.badge-item {
+  background: #f6f7f7;
+  border-radius: 16rpx;
+  padding: 18rpx;
+}
+
+.badge-name {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 6rpx;
+}
+
+.rank-item,
+.record-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16rpx;
+  padding: 18rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.rank-item:last-child,
+.record-item:last-child {
+  border-bottom: none;
+}
+
+.left {
+  flex: 1;
+  min-width: 0;
+}
+
+.right {
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.r-type {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 6rpx;
+}
+
+.r-points {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #22c55e;
+  margin-bottom: 6rpx;
+}

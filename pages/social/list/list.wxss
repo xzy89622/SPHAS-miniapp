@@ -1,0 +1,16 @@
+.page { padding: 24rpx; }
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18rpx; }
+.title { font-size: 36rpx; font-weight: 700; }
+
+.card { background: #fff; border-radius: 18rpx; padding: 20rpx; margin-bottom: 16rpx; }
+.content { color: #222; line-height: 1.6; margin-bottom: 10rpx; }
+
+.imgs { display: flex; gap: 12rpx; flex-wrap: wrap; }
+.img { width: 210rpx; height: 210rpx; border-radius: 14rpx; }
+
+.meta { margin-top: 12rpx; display: flex; gap: 20rpx; color: #666; font-size: 24rpx; }
+.time { margin-left: auto; color: #999; }
+
+.status { text-align: center; padding: 40rpx 0; color: #666; }
+.err { color: #d93025; }
+.more { text-align: center; padding: 20rpx 0; color: #666; }

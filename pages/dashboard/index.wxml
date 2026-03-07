@@ -6,6 +6,18 @@
     <button class="btn" size="mini" bindtap="reload">刷新</button>
   </view>
 
+  <!-- 快捷入口 -->
+  <view class="quick">
+    <view class="q-title">快捷入口</view>
+    <view class="q-row">
+  <button size="mini" bindtap="goCommunity">健康社区</button>
+  <button size="mini" bindtap="goAssessment">体质评估</button>
+  <button size="mini" bindtap="goRecommend">今日推荐</button>
+  <button size="mini" bindtap="goChallenge">健康挑战</button>
+  <button size="mini" bindtap="goPoints">积分中心</button>
+</view>
+  </view>
+
   <!-- 统计卡片 -->
   <view class="cards">
     <view class="card">
@@ -33,15 +45,8 @@
       <text class="hint">（示例：体重/打卡次数/热量等，取决于后端 trend 返回）</text>
     </view>
 
-    <!-- 简单折线图 -->
-    <canvas
-      class="chart"
-      canvas-id="trendCanvas"
-      id="trendCanvas"
-      type="2d"
-    ></canvas>
+    <canvas class="chart" canvas-id="trendCanvas" id="trendCanvas" type="2d"></canvas>
 
-    <!-- 列表展示（兜底，防止你后端字段不一样也能看到数据） -->
     <view class="trend-list">
       <view class="trend-item" wx:for="{{trendList}}" wx:key="date">
         <text class="date">{{item.date}}</text>
@@ -50,7 +55,6 @@
     </view>
   </view>
 
-  <!-- 状态提示 -->
   <view class="status" wx:if="{{loading}}">加载中...</view>
   <view class="status err" wx:if="{{!loading && errorMsg}}">{{errorMsg}}</view>
 </view>

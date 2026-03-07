@@ -1,0 +1,59 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="status">加载中...</view>
+  <view wx:if="{{!loading && errMsg}}" class="status err">{{errMsg}}</view>
+
+  <view wx:if="{{!loading && post}}" class="card">
+    <view class="content">{{post.content}}</view>
+
+    <view wx:if="{{images.length > 0}}" class="imgs">
+      <image
+        wx:for="{{images}}"
+        wx:for-item="img"
+        wx:key="*this"
+        class="img"
+        src="{{img}}"
+        mode="aspectFill"
+        data-src="{{img}}"
+        bindtap="previewImg"
+      />
+    </view>
+
+    <view class="meta">
+      <text>👍 {{post.likeCount || 0}}</text>
+      <text>💬 {{post.commentCount || 0}}</text>
+      <text class="time">{{post.createTime || ''}}</text>
+    </view>
+
+    <view class="actions">
+      <button size="mini" type="{{liked ? 'default' : 'primary'}}" bindtap="toggleLike">
+        {{liked ? '已点赞' : '点赞'}}
+      </button>
+      <button wx:if="{{canDelete}}" size="mini" type="warn" bindtap="deletePost">删除</button>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="sub-title">评论区</view>
+
+    <view class="comment-box">
+      <input
+        class="ipt"
+        placeholder="写评论..."
+        value="{{commentText}}"
+        bindinput="onCommentInput"
+      />
+      <button size="mini" type="primary" bindtap="sendComment">发送</button>
+    </view>
+
+    <view wx:if="{{comments.length === 0}}" class="status">暂无评论</view>
+
+    <block wx:for="{{comments}}" wx:key="id">
+      <view class="c-item">
+        <view class="c-content">{{item.content}}</view>
+        <view class="c-time">{{item.createTime || ''}}</view>
+      </view>
+    </block>
+
+    <view wx:if="{{hasMore && !cLoading}}" class="more" bindtap="loadMore">加载更多</view>
+  </view>
+</view>

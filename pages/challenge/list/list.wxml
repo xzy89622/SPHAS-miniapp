@@ -1,0 +1,54 @@
+<view class="page">
+  <view class="tabs">
+    <view
+      class="tab {{tab === 'all' ? 'active' : ''}}"
+      data-tab="all"
+      bindtap="switchTab"
+    >
+      健康挑战
+    </view>
+    <view
+      class="tab {{tab === 'mine' ? 'active' : ''}}"
+      data-tab="mine"
+      bindtap="switchTab"
+    >
+      我的挑战
+    </view>
+  </view>
+
+  <view wx:if="{{loading}}" class="status">加载中...</view>
+  <view wx:if="{{!loading && errMsg}}" class="status err">{{errMsg}}</view>
+
+  <!-- 全部挑战 -->
+  <block wx:if="{{tab === 'all'}}">
+    <view wx:if="{{!loading && allList.length === 0 && !errMsg}}" class="status">
+      暂无挑战
+    </view>
+
+    <block wx:for="{{allList}}" wx:key="id">
+      <view class="card" bindtap="goDetail" data-id="{{item.id}}">
+        <view class="name">{{item.title || item.name}}</view>
+        <view class="desc">{{item.description || item.content || ''}}</view>
+        <view class="line">目标值：{{item.targetValue || item.target_value || item.target || '-'}}</view>
+        <view class="line">奖励积分：{{item.rewardPoints || item.reward_points || item.points || 0}}</view>
+        <view class="line">开始：{{item.startDate || item.start_date || item.startTime || '-'}}</view>
+        <view class="line">结束：{{item.endDate || item.end_date || item.endTime || '-'}}</view>
+      </view>
+    </block>
+  </block>
+
+  <!-- 我的挑战 -->
+  <block wx:if="{{tab === 'mine'}}">
+    <view wx:if="{{!loading && myList.length === 0 && !errMsg}}" class="status">
+      暂无挑战
+    </view>
+
+    <block wx:for="{{myList}}" wx:key="id">
+      <view class="card" bindtap="goDetail" data-id="{{item.challengeId || item.challenge_id || item.id}}">
+        <view class="name">{{item.challengeTitle || item.title || item.name || '我的挑战'}}</view>
+        <view class="line">进度：{{item.progressValue || item.progress_value || item.progress || 0}}</view>
+        <view class="line">状态：{{item.finished ? '已完成' : '进行中'}}</view>
+      </view>
+    </block>
+  </block>
+</view>

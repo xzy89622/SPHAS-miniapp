@@ -1,0 +1,17 @@
+.page { padding: 24rpx; }
+.card { background: #fff; border-radius: 18rpx; padding: 20rpx; margin-bottom: 16rpx; }
+
+.title { font-size: 34rpx; font-weight: 700; margin-bottom: 12rpx; }
+.desc { color: #555; line-height: 1.6; margin-bottom: 14rpx; }
+.sub-title { font-size: 30rpx; font-weight: 700; margin-bottom: 12rpx; }
+
+.line { color: #333; margin-bottom: 10rpx; }
+
+.progress-box { display: flex; gap: 12rpx; align-items: center; margin: 16rpx 0; }
+.ipt { flex: 1; border: 2rpx solid #eee; border-radius: 14rpx; padding: 14rpx; }
+
+.rank-item { display: flex; justify-content: space-between; padding: 12rpx 0; border-bottom: 1rpx solid #f2f2f2; }
+.rank-item:last-child { border-bottom: none; }
+
+.status { text-align: center; padding: 40rpx 0; color: #666; }
+.err { color: #d93025; }

@@ -26,6 +26,24 @@
   margin-top: 12rpx;
 }
 
+/* ✅ 新增：快捷入口 */
+.quick {
+  padding: 18rpx;
+  border-radius: 20rpx;
+  background: #ffffff;
+  box-shadow: 0 6rpx 18rpx rgba(0, 0, 0, 0.06);
+  margin-bottom: 18rpx;
+}
+.q-title {
+  font-weight: 700;
+  margin-bottom: 12rpx;
+}
+.q-row {
+  display: flex;
+  gap: 12rpx;
+  flex-wrap: wrap;
+}
+
 .cards {
   display: grid;
   grid-template-columns: 1fr 1fr;

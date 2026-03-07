@@ -1,0 +1,7 @@
+.page { padding: 24rpx; }
+.card { background: #fff; border-radius: 18rpx; padding: 20rpx; margin-bottom: 16rpx; }
+.name { font-size: 30rpx; font-weight: 700; margin-bottom: 10rpx; }
+.line { color: #555; margin-bottom: 8rpx; }
+
+.status { text-align: center; padding: 40rpx 0; color: #666; }
+.err { color: #d93025; }

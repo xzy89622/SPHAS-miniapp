@@ -17,7 +17,14 @@
     "pages/message/detail/detail",
     "pages/dashboard/index",
     "pages/assessment/index/index",
-    "pages/recommend/today/index"
+    "pages/recommend/today/index",
+    "pages/social/list/list",
+    "pages/social/publish/publish",
+    "pages/social/detail/detail",
+    "pages/challenge/list/list",
+    "pages/challenge/detail/detail",
+    "pages/challenge/my/my",
+    "pages/points/index/index"
   ],
   "window": {
     "navigationBarTitleText": "SPHAS",

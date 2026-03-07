@@ -1,0 +1,26 @@
+.page { padding: 24rpx; }
+.card { background: #fff; border-radius: 18rpx; padding: 20rpx; margin-bottom: 16rpx; }
+
+.content { color: #222; line-height: 1.6; margin-bottom: 10rpx; }
+
+.imgs { display: flex; gap: 12rpx; flex-wrap: wrap; margin-top: 10rpx; }
+.img { width: 210rpx; height: 210rpx; border-radius: 14rpx; }
+
+.meta { margin-top: 12rpx; display: flex; gap: 20rpx; color: #666; font-size: 24rpx; }
+.time { margin-left: auto; color: #999; }
+
+.actions { margin-top: 14rpx; display: flex; gap: 12rpx; }
+
+.sub-title { font-weight: 700; margin-bottom: 12rpx; }
+
+.comment-box { display: flex; gap: 12rpx; align-items: center; margin-bottom: 14rpx; }
+.ipt { flex: 1; border: 2rpx solid #eee; border-radius: 14rpx; padding: 14rpx; }
+
+.c-item { padding: 12rpx 0; border-bottom: 1rpx solid #f2f2f2; }
+.c-item:last-child { border-bottom: none; }
+.c-content { color: #222; }
+.c-time { color: #999; font-size: 22rpx; margin-top: 6rpx; }
+
+.status { text-align: center; padding: 24rpx 0; color: #666; }
+.err { color: #d93025; }
+.more { text-align: center; padding: 18rpx 0; color: #666; }

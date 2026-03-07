@@ -1,0 +1,66 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="status">加载中...</view>
+  <view wx:if="{{!loading && errMsg}}" class="status err">{{errMsg}}</view>
+
+  <view wx:if="{{!loading && detail}}" class="card">
+    <view class="title">{{detail.title || detail.name || '挑战详情'}}</view>
+    <view class="desc">{{detail.description || detail.content || ''}}</view>
+
+    <view class="line">目标值：{{detail.targetValue || detail.target || '-'}}</view>
+    <view class="line">奖励积分：{{detail.rewardPoints || detail.points || 0}}</view>
+    <view class="line">开始时间：{{detail.startTime || detail.startDate || '-'}}</view>
+    <view class="line">结束时间：{{detail.endTime || detail.endDate || '-'}}</view>
+  </view>
+
+  <view wx:if="{{!loading && detail}}" class="card">
+    <view class="sub-title">我的状态</view>
+    <view class="line">是否报名：{{joined ? '已报名' : '未报名'}}</view>
+    <view class="line">当前进度：{{progressValue}}</view>
+    <view class="line">是否完成：{{finished ? '已完成' : '未完成'}}</view>
+
+    <view wx:if="{{myProgressRank}}" class="line">
+      我的进度排名：第{{(myProgressRank.rank || 0)}}名，分数 {{myProgressRank.score || 0}}
+    </view>
+
+    <view wx:if="{{myFinishRank}}" class="line">
+      我的完成排名：第{{(myFinishRank.rank || 0)}}名，分数 {{myFinishRank.score || 0}}
+    </view>
+
+    <button wx:if="{{!joined}}" type="primary" bindtap="joinNow">报名挑战</button>
+
+    <view wx:if="{{joined && !finished}}" class="progress-box">
+      <input
+        class="ipt"
+        type="number"
+        placeholder="输入新的进度值"
+        value="{{progressInput}}"
+        bindinput="onProgressInput"
+      />
+      <button size="mini" type="primary" bindtap="saveProgress">更新进度</button>
+    </view>
+
+    <button wx:if="{{joined && !finished}}" bindtap="finishNow">完成挑战</button>
+  </view>
+
+  <view wx:if="{{progressRankList.length > 0}}" class="card">
+    <view class="sub-title">进度排行榜</view>
+    <block wx:for="{{progressRankList}}" wx:key="userId">
+      <view class="rank-item">
+        <text>第{{item.rank}}名</text>
+        <text>用户 {{item.userId}}</text>
+        <text>{{item.score || 0}}</text>
+      </view>
+    </block>
+  </view>
+
+  <view wx:if="{{finishRankList.length > 0}}" class="card">
+    <view class="sub-title">完成排行榜</view>
+    <block wx:for="{{finishRankList}}" wx:key="userId">
+      <view class="rank-item">
+        <text>第{{item.rank}}名</text>
+        <text>用户 {{item.userId}}</text>
+        <text>{{item.score || 0}}</text>
+      </view>
+    </block>
+  </view>
+</view>
