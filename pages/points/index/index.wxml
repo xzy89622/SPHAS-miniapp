@@ -33,10 +33,13 @@
     <view wx:if="{{leaderboard.length === 0}}" class="empty">暂无排行数据</view>
 
     <block wx:for="{{leaderboard}}" wx:key="userId">
-      <view class="rank-item">
-        <text>第{{item.showRank}}名</text>
-        <text>{{item.showName}}</text>
-        <text>{{item.showPoints}}</text>
+      <view class="rank-item {{item.rankClass}}">
+        <view class="rank-left">
+          <text class="rank-badge">{{item.rankBadge}}</text>
+          <text class="rank-no">第{{item.showRank}}名</text>
+        </view>
+        <text class="rank-name">{{item.showName}}</text>
+        <text class="rank-score">{{item.showPoints}}</text>
       </view>
     </block>
   </view>
@@ -58,5 +61,19 @@
         </view>
       </view>
     </block>
+
+    <view wx:if="{{records.length > 0}}" class="more-wrap">
+      <button
+        wx:if="{{hasMore && !loadingMore}}"
+        class="more-btn"
+        size="mini"
+        bindtap="loadMoreRecords"
+      >
+        查看更多
+      </button>
+
+      <view wx:if="{{loadingMore}}" class="more-text">正在加载更多...</view>
+      <view wx:if="{{!hasMore}}" class="more-text">没有更多了</view>
+    </view>
   </view>
 </view>

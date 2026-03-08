@@ -1,20 +1,52 @@
 // app.js
-// 目标：别再一直提示“未配置 BASE_URL”但请求又能发出去导致你误判
-
 App({
   globalData: {},
 
   onLaunch() {
-    // 只做提示，不做强依赖
-    const stored = (wx.getStorageSync("BASE_URL") || "").trim();
-    const isDevtools = wx.getSystemInfoSync().platform === "devtools";
-
-    if (!stored && !isDevtools) {
-      console.warn("未配置 BASE_URL：真机必须在 Storage 设置 BASE_URL（建议公网 https 域名）");
+    const stored = (wx.getStorageSync('BASE_URL') || '').trim();
+    if (!stored) {
+      wx.setStorageSync('BASE_URL', 'http://127.0.0.1:8080');
     }
+
+    console.log('[app] BASE_URL =', wx.getStorageSync('BASE_URL'));
+    console.log('[app] requireLogin exists =', typeof this.requireLogin);
+    console.log('[app] logoutAndJump exists =', typeof this.logoutAndJump);
+  },
+
+  isLogin() {
+    const token = wx.getStorageSync('token') || '';
+    return !!token;
+  },
+
+  requireLogin() {
+    const token = wx.getStorageSync('token') || '';
+    if (token) return true;
+
+    wx.showToast({
+      title: '请先登录',
+      icon: 'none'
+    });
+
+    setTimeout(() => {
+      wx.reLaunch({
+        url: '/pages/login/login'
+      });
+    }, 200);
+
+    return false;
+  },
+
+  logoutAndJump() {
+    wx.removeStorageSync('token');
+    wx.removeStorageSync('userId');
+    wx.removeStorageSync('userInfo');
+
+    wx.reLaunch({
+      url: '/pages/login/login'
+    });
   },
 
   onPageNotFound() {
-    wx.reLaunch({ url: "/pages/login/login" });
-  },
+    wx.reLaunch({ url: '/pages/login/login' });
+  }
 });

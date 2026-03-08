@@ -50,7 +50,10 @@ Page({
   },
 
   onLoad() {
-    this.loadToday();
+    const app = getApp();
+    if (!app || typeof app.requireLogin !== 'function') return;
+    if (!app.requireLogin()) return;
+    this.loadData();
   },
 
   async loadToday() {

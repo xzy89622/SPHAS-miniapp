@@ -1,24 +1,79 @@
 // utils/auth.js
-const api = require("./request");
+const request = require('./request');
 
-// ✅ 登录（根据你后端实际接口路径修改）
-// 如果你后端是 /api/auth/login 就不用改
+const TOKEN_KEY = 'token';
+const USER_ID_KEY = 'userId';
+const USER_INFO_KEY = 'userInfo';
+
+function setToken(token) {
+  const value = token || '';
+  if (value) {
+    wx.setStorageSync(TOKEN_KEY, value);
+  } else {
+    wx.removeStorageSync(TOKEN_KEY);
+  }
+}
+
+function getToken() {
+  return wx.getStorageSync(TOKEN_KEY) || '';
+}
+
+function clearToken() {
+  wx.removeStorageSync(TOKEN_KEY);
+  wx.removeStorageSync(USER_ID_KEY);
+  wx.removeStorageSync(USER_INFO_KEY);
+}
+
+function setUserInfo(profile) {
+  const info = profile || {};
+  wx.setStorageSync(USER_INFO_KEY, info);
+
+  if (info && info.id) {
+    wx.setStorageSync(USER_ID_KEY, info.id);
+  } else {
+    wx.removeStorageSync(USER_ID_KEY);
+  }
+}
+
+function getUserInfo() {
+  return wx.getStorageSync(USER_INFO_KEY) || null;
+}
+
+function getUserId() {
+  return wx.getStorageSync(USER_ID_KEY) || '';
+}
+
+// 登录
 function login(username, password) {
-  return api.post("/api/auth/login", { username, password });
+  return request.post('/api/auth/login', { username, password });
 }
 
-// ✅ 注册（如果你用得到）
-function register(username, password) {
-  return api.post("/api/auth/register", { username, password });
+// 注册
+function register(payload) {
+  return request.post('/api/auth/register', payload);
 }
 
-// ✅ 获取当前登录用户信息（如果后端有这个接口）
+// 获取当前登录用户资料
 function profile() {
-  return api.get("/api/user/profile");
+  return request.get('/api/user/profile');
+}
+
+// 登录后同步当前用户信息
+async function syncProfile() {
+  const info = await profile();
+  setUserInfo(info || {});
+  return info;
 }
 
 module.exports = {
+  setToken,
+  getToken,
+  clearToken,
+  setUserInfo,
+  getUserInfo,
+  getUserId,
   login,
   register,
   profile,
+  syncProfile
 };

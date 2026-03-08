@@ -31,11 +31,13 @@
       <view class="meta">
         <text>👍 {{item.likeCount || 0}}</text>
         <text>💬 {{item.commentCount || 0}}</text>
-        <text class="time">{{item.createTime || ''}}</text>
+        <text class="time">{{item.showTime}}</text>
       </view>
     </view>
   </block>
 
-  <view wx:if="{{hasMore && !loading}}" class="more" bindtap="loadMore">加载更多</view>
+  <view wx:if="{{hasMore && !loading && posts.length > 0}}" class="more" bindtap="loadMore">
+    加载更多
+  </view>
   <view wx:if="{{!hasMore && posts.length > 0}}" class="more">没有更多了</view>
 </view>

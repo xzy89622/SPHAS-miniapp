@@ -1,5 +1,5 @@
 // pages/social/list/list.js
-const api = require('../../api/social');
+const socialApi = require('../../api/social.js');
 
 Page({
   data: {
@@ -12,6 +12,16 @@ Page({
   },
 
   onLoad() {
+    const app = getApp();
+    if (!app || typeof app.requireLogin !== 'function') return;
+    if (!app.requireLogin()) return;
+    this.reload();
+  },
+  
+  onShow() {
+    const app = getApp();
+    if (!app || typeof app.requireLogin !== 'function') return;
+    if (!app.requireLogin()) return;
     this.reload();
   },
 
@@ -23,8 +33,21 @@ Page({
     this.loadMore();
   },
 
+  formatTime(timeStr) {
+    if (!timeStr) return '';
+    return String(timeStr)
+      .replace('T', ' ')
+      .replace(/\.\d+$/, '')
+      .slice(0, 16);
+  },
+
   async reload() {
-    this.setData({ pageNum: 1, hasMore: true, posts: [], errMsg: '' });
+    this.setData({
+      pageNum: 1,
+      hasMore: true,
+      posts: [],
+      errMsg: ''
+    });
     await this.fetchPage(true);
   },
 
@@ -36,45 +59,41 @@ Page({
 
   async fetchPage(reset) {
     this.setData({ loading: true });
-    try {
-      const res = await api.pagePosts({ pageNum: this.data.pageNum, pageSize: this.data.pageSize });
 
-      // 后端是 MyBatis-Plus Page：{records, total, ...}
-      const records = res.records || [];
-      const list = records.map(p => ({
-        ...p,
-        _images: this.safeParseImages(p.imagesJson)
-      }));
+    try {
+      const res = await socialApi.pagePosts({
+        pageNum: this.data.pageNum,
+        pageSize: this.data.pageSize
+      });
+
+      console.log('[social list] page res =', res);
+
+      const records = Array.isArray(res.records) ? res.records : [];
+      const list = records.map(p => {
+        const images = socialApi.parseImagesJson(p.imagesJson);
+        return {
+          ...p,
+          _images: images,
+          coverImage: images[0] || '',
+          showTime: this.formatTime(p.createTime)
+        };
+      });
 
       const posts = reset ? list : this.data.posts.concat(list);
-      const hasMore = posts.length < (res.total || posts.length);
+      const total = Number(res.total || 0);
+      const hasMore = total > posts.length;
 
-      this.setData({ posts, hasMore });
-    } catch (e) {
-      this.setData({ errMsg: e.msg || '加载失败' });
-    } finally {
-      this.setData({ loading: false });
-    }
-  },
-
-  safeParseImages(imagesJson) {
-    try {
-      const arr = JSON.parse(imagesJson || '[]');
-      if (!Array.isArray(arr)) return [];
-  
-      return arr.filter(url => {
-        if (typeof url !== 'string') return false;
-        const u = url.trim();
-        if (!u) return false;
-  
-        // 过滤明显假的测试图
-        if (u.includes('http://xx/')) return false;
-  
-        // 允许 https；也允许你本地后端静态资源地址
-        return u.startsWith('https://') || u.startsWith('http://localhost:8080/') || u.startsWith('http://127.0.0.1:8080/');
+      this.setData({
+        posts,
+        hasMore
       });
     } catch (e) {
-      return [];
+      console.log('[social list] fetchPage fail =', e);
+      this.setData({
+        errMsg: e.msg || '加载失败'
+      });
+    } finally {
+      this.setData({ loading: false });
     }
   },
 
@@ -84,12 +103,17 @@ Page({
 
   goDetail(e) {
     const id = e.currentTarget.dataset.id;
+    if (!id) return;
     wx.navigateTo({ url: `/pages/social/detail/detail?id=${id}` });
   },
 
   previewImg(e) {
-    // 阻止卡片跳转
     const src = e.currentTarget.dataset.src;
-    wx.previewImage({ urls: [src], current: src });
+    if (!src) return;
+
+    wx.previewImage({
+      urls: [src],
+      current: src
+    });
   }
 });

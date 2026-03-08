@@ -1,19 +1,130 @@
 .page {
   padding: 24rpx;
   box-sizing: border-box;
+  min-height: 100vh;
+  background: #f7f8fa;
+}
+
+.user-card,
+.profile-panel,
+.header,
+.quick,
+.card,
+.panel {
+  border-radius: 20rpx;
+  background: #ffffff;
+  box-shadow: 0 6rpx 18rpx rgba(0, 0, 0, 0.06);
+}
+
+.user-card {
+  padding: 22rpx;
+  margin-bottom: 18rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.user-left {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  flex: 1;
+  min-width: 0;
+}
+
+.avatar {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
+  background: #22c55e;
+  color: #fff;
+  font-size: 36rpx;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.user-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-name {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 6rpx;
+}
+
+.user-sub {
+  font-size: 24rpx;
+  color: #666;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.dot {
+  margin: 0 10rpx;
+}
+
+.logout-btn {
+  flex-shrink: 0;
+}
+
+.profile-panel {
+  padding: 22rpx;
+  margin-bottom: 18rpx;
+}
+
+.panel-title {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+  margin-bottom: 14rpx;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #222;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14rpx 0;
+  border-bottom: 1rpx solid #f1f1f1;
+  gap: 20rpx;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  color: #666;
+  font-size: 26rpx;
+}
+
+.info-value {
+  color: #222;
+  font-size: 26rpx;
+  font-weight: 500;
+  text-align: right;
+  word-break: break-all;
 }
 
 .header {
   padding: 16rpx 16rpx 20rpx 16rpx;
-  border-radius: 20rpx;
-  background: #ffffff;
-  box-shadow: 0 6rpx 18rpx rgba(0, 0, 0, 0.06);
   margin-bottom: 18rpx;
 }
 
 .title {
   font-size: 38rpx;
   font-weight: 700;
+  color: #222;
 }
 
 .sub {
@@ -26,18 +137,18 @@
   margin-top: 12rpx;
 }
 
-/* ✅ 新增：快捷入口 */
 .quick {
   padding: 18rpx;
-  border-radius: 20rpx;
-  background: #ffffff;
-  box-shadow: 0 6rpx 18rpx rgba(0, 0, 0, 0.06);
   margin-bottom: 18rpx;
 }
+
 .q-title {
   font-weight: 700;
   margin-bottom: 12rpx;
+  font-size: 30rpx;
+  color: #222;
 }
+
 .q-row {
   display: flex;
   gap: 12rpx;
@@ -53,9 +164,6 @@
 
 .card {
   padding: 18rpx;
-  border-radius: 20rpx;
-  background: #ffffff;
-  box-shadow: 0 6rpx 18rpx rgba(0, 0, 0, 0.06);
 }
 
 .label {
@@ -67,20 +175,11 @@
   margin-top: 10rpx;
   font-size: 44rpx;
   font-weight: 700;
+  color: #222;
 }
 
 .panel {
   padding: 18rpx;
-  border-radius: 20rpx;
-  background: #ffffff;
-  box-shadow: 0 6rpx 18rpx rgba(0, 0, 0, 0.06);
-}
-
-.panel-title {
-  display: flex;
-  flex-direction: column;
-  gap: 6rpx;
-  margin-bottom: 12rpx;
 }
 
 .hint {
@@ -121,7 +220,8 @@
   font-weight: 600;
 }
 
-.status {
+.status,
+.empty {
   margin-top: 20rpx;
   text-align: center;
   color: #666;

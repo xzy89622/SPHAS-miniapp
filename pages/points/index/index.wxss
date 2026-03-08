@@ -39,7 +39,8 @@
 .empty,
 .badge-desc,
 .r-remark,
-.r-time {
+.r-time,
+.more-text {
   color: #999;
   font-size: 24rpx;
   line-height: 1.7;
@@ -84,6 +85,59 @@
   border-bottom: none;
 }
 
+.rank-left {
+  display: flex;
+  align-items: center;
+  min-width: 150rpx;
+}
+
+.rank-badge {
+  font-size: 30rpx;
+  margin-right: 8rpx;
+}
+
+.rank-no {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #222;
+}
+
+.rank-name {
+  flex: 1;
+  text-align: center;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.rank-score {
+  min-width: 80rpx;
+  text-align: right;
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #222;
+}
+
+.top1 {
+  background: linear-gradient(90deg, #fff8db 0%, #ffffff 100%);
+  border-radius: 14rpx;
+  padding-left: 16rpx;
+  padding-right: 16rpx;
+}
+
+.top2 {
+  background: linear-gradient(90deg, #f1f5f9 0%, #ffffff 100%);
+  border-radius: 14rpx;
+  padding-left: 16rpx;
+  padding-right: 16rpx;
+}
+
+.top3 {
+  background: linear-gradient(90deg, #fff1e6 0%, #ffffff 100%);
+  border-radius: 14rpx;
+  padding-left: 16rpx;
+  padding-right: 16rpx;
+}
+
 .left {
   flex: 1;
   min-width: 0;
@@ -106,4 +160,16 @@
   font-weight: 700;
   color: #22c55e;
   margin-bottom: 6rpx;
+}
+
+.more-wrap {
+  padding-top: 20rpx;
+  text-align: center;
+}
+
+.more-btn {
+  background: #f3f4f6;
+  color: #333;
+  border-radius: 999rpx;
+  padding: 0 24rpx;
 }
