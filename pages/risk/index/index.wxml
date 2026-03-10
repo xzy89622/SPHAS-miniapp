@@ -1,9 +1,169 @@
-<view class="wrap">
-  <view class="card">
-    <view class="t">风险预警</view>
-    <view class="d">该功能下一步对接后端风险评估接口。</view>
+<view class="page">
+  <view class="hero card">
+    <view class="hero-title">健康风险预警</view>
+    <view class="hero-desc">
+      基于最新体质指标、生活方式和趋势变化，生成风险等级、干预建议和未来趋势预测。
+    </view>
 
-    <button class="btn" bindtap="goLatest">先查看最近记录</button>
-    <button class="btn2" bindtap="goRecord">去录入数据</button>
+    <view class="hero-actions">
+      <button class="primary-btn" loading="{{evaluating}}" bindtap="doEvaluate">
+        {{evaluating ? '生成中...' : '立即生成预警'}}
+      </button>
+      <button class="ghost-btn" bindtap="goRecord">去录入体质数据</button>
+    </view>
   </view>
+
+  <view class="tabs card">
+    <view class="tab-title">统计周期</view>
+    <view class="tab-row">
+      <view class="tab {{days===7 ? 'active' : ''}}" data-days="7" bindtap="changeDays">近7天</view>
+      <view class="tab {{days===30 ? 'active' : ''}}" data-days="30" bindtap="changeDays">近30天</view>
+      <view class="tab {{days===90 ? 'active' : ''}}" data-days="90" bindtap="changeDays">近90天</view>
+    </view>
+  </view>
+
+  <view class="stats">
+    <view class="stat-card">
+      <view class="stat-label">预警总数</view>
+      <view class="stat-value">{{dashboard.total}}</view>
+    </view>
+
+    <view class="stat-card safe">
+      <view class="stat-label">低风险</view>
+      <view class="stat-value">{{dashboard.levelCounts.LOW}}</view>
+    </view>
+
+    <view class="stat-card warn">
+      <view class="stat-label">中风险</view>
+      <view class="stat-value">{{dashboard.levelCounts.MID}}</view>
+    </view>
+
+    <view class="stat-card danger">
+      <view class="stat-label">高风险</view>
+      <view class="stat-value">{{dashboard.levelCounts.HIGH}}</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">风险趋势图</view>
+    <view class="chart-desc">展示当前统计周期内每日预警次数变化</view>
+    <view class="chart-wrap">
+      <canvas
+        canvas-id="riskTrendCanvas"
+        id="riskTrendCanvas"
+        class="trend-canvas"
+        style="width: {{chartWidth}}px; height: {{chartHeight}}px;"
+      ></canvas>
+    </view>
+  </view>
+
+  <view class="card" wx:if="{{dashboard.aiConclusion}}">
+    <view class="section-title">AI 风险总结</view>
+    <view class="summary">{{dashboard.aiConclusion}}</view>
+    <view class="sub-line" wx:if="{{dashboard.latestHighTime}}">
+      最近一次高风险时间：{{dashboard.latestHighTime}}
+    </view>
+  </view>
+
+  <view class="card" wx:if="{{latestResult}}">
+    <view class="section-title">本次最新评估结果</view>
+
+    <view class="result-top">
+      <view class="level-badge {{latestResult.riskLevel === 'HIGH' ? 'danger' : (latestResult.riskLevel === 'MID' ? 'warn' : 'safe')}}">
+        {{latestResult.riskLevel === 'HIGH' ? '高风险' : (latestResult.riskLevel === 'MID' ? '中风险' : '低风险')}}
+      </view>
+      <view class="score">风险分：{{latestResult.riskScore}}</view>
+    </view>
+
+    <view class="block" wx:if="{{latestResult.reasons && latestResult.reasons.length}}">
+      <view class="block-title">触发原因</view>
+      <view class="tag-list">
+        <view class="tag" wx:for="{{latestResult.reasons}}" wx:key="index">{{item}}</view>
+      </view>
+    </view>
+
+    <view class="block" wx:if="{{latestResult.aiSummary}}">
+      <view class="block-title">AI 解读</view>
+      <view class="text">{{latestResult.aiSummary}}</view>
+    </view>
+
+    <view class="block" wx:if="{{latestResult.advice}}">
+      <view class="block-title">干预建议</view>
+      <view class="text">{{latestResult.advice}}</view>
+    </view>
+
+    <view class="block" wx:if="{{latestResult.aiPrediction}}">
+      <view class="block-title">未来预测</view>
+
+      <view class="predict-grid">
+        <view class="predict-item">
+          <view class="p-label">模型</view>
+          <view class="p-value">{{latestResult.aiPrediction.model || '-'}}</view>
+        </view>
+
+        <view class="predict-item">
+          <view class="p-label">预测天数</view>
+          <view class="p-value">{{latestResult.aiPrediction.horizonDays || '-'}} 天</view>
+        </view>
+
+        <view class="predict-item">
+          <view class="p-label">预测风险分</view>
+          <view class="p-value">{{latestResult.aiPrediction.predictedRiskScore || '-'}}</view>
+        </view>
+
+        <view class="predict-item">
+          <view class="p-label">趋势</view>
+          <view class="p-value">{{latestResult.aiPrediction.trend || '-'}}</view>
+        </view>
+
+        <view class="predict-item" wx:if="{{latestResult.aiPrediction.predictedWeightKg}}">
+          <view class="p-label">预测体重</view>
+          <view class="p-value">{{latestResult.aiPrediction.predictedWeightKg}} kg</view>
+        </view>
+      </view>
+
+      <view class="text" wx:if="{{latestResult.aiPrediction.suggestion}}">
+        {{latestResult.aiPrediction.suggestion}}
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">历史预警记录</view>
+
+    <view wx:if="{{!loading && historyList.length===0}}" class="empty">
+      暂无历史预警记录，先点击“立即生成预警”
+    </view>
+
+    <view class="history-item" wx:for="{{historyList}}" wx:key="id">
+      <view class="history-top">
+        <view class="level-badge {{item.riskLevel === 'HIGH' ? 'danger' : (item.riskLevel === 'MID' ? 'warn' : 'safe')}}">
+          {{item.riskLevel === 'HIGH' ? '高风险' : (item.riskLevel === 'MID' ? '中风险' : '低风险')}}
+        </view>
+        <view class="time">{{item.createTime}}</view>
+      </view>
+
+      <view class="history-score">风险分：{{item.riskScore}}</view>
+
+      <view class="tag-list" wx:if="{{item.reasons && item.reasons.length}}">
+        <view class="tag" wx:for="{{item.reasons}}" wx:key="index">{{item}}</view>
+      </view>
+
+      <view class="history-text" wx:if="{{item.aiSummary}}">
+        AI 解读：{{item.aiSummary}}
+      </view>
+
+      <view class="history-text" wx:if="{{item.advice}}">
+        建议：{{item.advice}}
+      </view>
+    </view>
+  </view>
+
+  <view class="bottom-actions">
+    <button class="mini-btn" bindtap="goLatest">查看最近健康记录</button>
+    <button class="mini-btn" bindtap="goRecord">去录入数据</button>
+  </view>
+
+  <view class="status" wx:if="{{loading}}">加载中...</view>
+  <view class="status err" wx:if="{{!loading && errorMsg}}">{{errorMsg}}</view>
 </view>
