@@ -1,7 +1,4 @@
-// pages/health/record/record.js
-// 功能：录入/更新健康数据（对接后端 POST /api/health/record）
-
-const { request } = require('../../../utils/request');
+const request = require('../../../utils/request');
 
 function today() {
   const d = new Date();
@@ -9,6 +6,10 @@ function today() {
   const m = String(d.getMonth() + 1).padStart(2, '0');
   const dd = String(d.getDate()).padStart(2, '0');
   return `${y}-${m}-${dd}`;
+}
+
+function toDateTimeString(dateStr) {
+  return `${dateStr} 08:00:00`;
 }
 
 Page({
@@ -28,10 +29,8 @@ Page({
   },
 
   onLoad(options) {
-    // 默认填今天
     this.setData({ 'form.recordDate': today() });
 
-    // 如果从“最近记录”点进来，可能会带 recordDate（你后面想做编辑的话也方便）
     if (options && options.recordDate) {
       this.setData({ 'form.recordDate': options.recordDate });
     }
@@ -46,31 +45,32 @@ Page({
     this.setData({ [`form.${k}`]: e.detail.value });
   },
 
-  // 简单校验：日期必填，其他可选（后端 DTO 只有 recordDate @NotNull）
   validate() {
     const f = this.data.form;
+
     if (!f.recordDate) return '请选择日期';
+
+    if (f.heightCm && (Number(f.heightCm) < 80 || Number(f.heightCm) > 250)) {
+      return '身高请填写 80~250 之间';
+    }
+
+    if (f.weightKg && (Number(f.weightKg) < 20 || Number(f.weightKg) > 300)) {
+      return '体重请填写 20~300 之间';
+    }
+
     return '';
   },
 
-  // 将 input 的字符串转成 number（为空则不传）
   toNum(v, type = 'float') {
     if (v === '' || v === null || v === undefined) return undefined;
     const n = type === 'int' ? parseInt(v, 10) : parseFloat(v);
     return Number.isNaN(n) ? undefined : n;
   },
 
-  async onSubmit() {
-    const msg = this.validate();
-    if (msg) {
-      wx.showToast({ title: msg, icon: 'none' });
-      return;
-    }
-
+  buildHealthPayload() {
     const f = this.data.form;
 
-    // 按后端 HealthRecordAddDTO 组装参数
-    const payload = {
+    return {
       recordDate: f.recordDate,
       heightCm: this.toNum(f.heightCm),
       weightKg: this.toNum(f.weightKg),
@@ -81,21 +81,86 @@ Page({
       sleepHours: this.toNum(f.sleepHours),
       remark: f.remark || undefined
     };
+  },
+
+  buildMetricPayload() {
+    const f = this.data.form;
+
+    return {
+      recordTime: toDateTimeString(f.recordDate),
+      heightCm: this.toNum(f.heightCm),
+      weightKg: this.toNum(f.weightKg),
+      systolic: this.toNum(f.systolic, 'int'),
+      diastolic: this.toNum(f.diastolic, 'int'),
+      steps: this.toNum(f.steps, 'int'),
+      sleepHours: this.toNum(f.sleepHours)
+    };
+  },
+
+  async saveBaseHealthRecord(payload) {
+    return request({
+      url: '/api/health/record',
+      method: 'POST',
+      data: payload
+    });
+  },
+
+  async saveMetricRecord(payload) {
+    const hasMetricCore =
+      payload.heightCm !== undefined ||
+      payload.weightKg !== undefined ||
+      payload.systolic !== undefined ||
+      payload.diastolic !== undefined ||
+      payload.steps !== undefined ||
+      payload.sleepHours !== undefined;
+
+    if (!hasMetricCore) {
+      return null;
+    }
+
+    return request({
+      url: '/api/user/metrics',
+      method: 'POST',
+      data: payload
+    });
+  },
+
+  async onSubmit() {
+    const msg = this.validate();
+    if (msg) {
+      wx.showToast({ title: msg, icon: 'none' });
+      return;
+    }
+
+    const healthPayload = this.buildHealthPayload();
+    const metricPayload = this.buildMetricPayload();
 
     try {
       this.setData({ submitting: true });
 
-      // 后端返回 R<Long>（id），request 会 resolve body.data
-      await request({
-        url: '/api/health/record',
-        method: 'POST',
-        data: payload
-      });
+      await this.saveBaseHealthRecord(healthPayload);
 
-      wx.showToast({ title: '保存成功', icon: 'success' });
+      try {
+        await this.saveMetricRecord(metricPayload);
+      } catch (metricErr) {
+        console.error('[health record] save metric fail:', metricErr);
+      }
+
+      wx.showModal({
+        title: '保存成功',
+        content: '健康数据已保存，是否立即去做体质评估？',
+        confirmText: '去评估',
+        cancelText: '继续查看',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({ url: '/pages/assessment/index/index' });
+          } else {
+            wx.navigateTo({ url: '/pages/health/latest/latest' });
+          }
+        }
+      });
     } catch (e) {
-      // request.js 已统一 toast，这里不重复打扰用户
-      console.error('save record error:', e);
+      console.error('[health record] save fail:', e);
     } finally {
       this.setData({ submitting: false });
     }

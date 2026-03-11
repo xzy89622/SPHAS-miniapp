@@ -1,7 +1,7 @@
 <view class="page">
   <view class="card">
     <view class="title">体质评估问卷</view>
-    <view class="tip">选完后点提交，生成你的体质结果</view>
+    <view class="tip">提交后会结合你的最新健康数据和问卷结果生成评估与推荐</view>
   </view>
 
   <view wx:if="{{loading}}" class="loading">加载题目中...</view>
@@ -11,7 +11,6 @@
       <view class="q-card">
         <view class="q-title">{{index + 1}}. {{item.questionText}}</view>
 
-        <!-- 数字题 -->
         <view wx:if="{{item.uiType === 'number'}}" class="input-wrap">
           <input
             type="number"
@@ -20,10 +19,9 @@
             data-qid="{{item.id}}"
             bindinput="onInputAnswer"
           />
-          <view class="input-tip">比如：3、5、8</view>
+          <view class="input-tip">请输入数字答案</view>
         </view>
 
-        <!-- 文本题 -->
         <view wx:elif="{{item.uiType === 'text'}}" class="input-wrap">
           <textarea
             placeholder="请输入内容"
@@ -34,7 +32,6 @@
           />
         </view>
 
-        <!-- 是否题 -->
         <view wx:elif="{{item.uiType === 'boolean'}}" class="opt-list">
           <view
             class="opt-item {{answers[item.id] == 'yes' ? 'active' : ''}}"
@@ -57,7 +54,6 @@
           </view>
         </view>
 
-        <!-- 选择题 -->
         <view wx:else class="opt-list">
           <view
             wx:for="{{item.options}}"
@@ -84,20 +80,31 @@
     </button>
   </view>
 
-  <!-- ✅ 结果展示：按你现在真实返回字段来 -->
   <view wx:if="{{result}}" class="card result">
     <view class="title">评估结果</view>
 
+    <view class="line">BMI：{{result.bmi || '-'}}</view>
     <view class="line">BMI 等级：{{result.bmiLevel || '-'}}</view>
+    <view class="line">BMI 建议：{{result.bmiAdvice || '-'}}</view>
+    <view class="line">综合评价：{{result.overall || '-'}}</view>
     <view class="line">推荐理由：{{result.reason || '-'}}</view>
 
-    <!-- diet/sport 可能是对象 -->
+    <view class="sub-title">维度建议</view>
+    <view class="line">{{result.sportTip || '-'}}</view>
+    <view class="line">{{result.dietTip || '-'}}</view>
+    <view class="line">{{result.sleepTip || '-'}}</view>
+    <view class="line">{{result.stressTip || '-'}}</view>
+
     <view class="sub-title">饮食方案</view>
-    <view class="line">{{(result.diet && (result.diet.name || result.diet.title || result.diet.description)) || '-'}}</view>
+    <view class="line">
+      {{(result.diet && (result.diet.name || result.diet.title || result.diet.description || result.diet.content)) || '-'}}
+    </view>
 
     <view class="sub-title">运动方案</view>
-    <view class="line">{{(result.sport && (result.sport.name || result.sport.title || result.sport.description)) || '-'}}</view>
+    <view class="line">
+      {{(result.sport && (result.sport.name || result.sport.title || result.sport.description || result.sport.content)) || '-'}}
+    </view>
 
-    <button bindtap="goRecommend">去看今日推荐</button>
+    <button bindtap="goRecommend">查看今日推荐页</button>
   </view>
 </view>

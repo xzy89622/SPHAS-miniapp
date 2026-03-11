@@ -24,7 +24,9 @@
     "pages/challenge/list/list",
     "pages/challenge/detail/detail",
     "pages/challenge/my/my",
-    "pages/points/index/index"
+    "pages/points/index/index",
+    "pages/social/mine/mine",
+    "pages/social/edit/edit"
   ],
   "window": {
     "navigationBarTitleText": "SPHAS",

@@ -1,4 +1,3 @@
-// pages/dashboard/index.js
 const request = require('../../utils/request');
 const auth = require('../../utils/auth');
 const pointsApi = require('../api/points.js');
@@ -110,15 +109,15 @@ Page({
         overviewRaw,
         pointSummary,
         healthLatest,
-        healthPage,
-        myChallenges
+        myChallenges,
+        trendRaw
       ] = await Promise.all([
         auth.profile().catch(() => null),
         request.get('/api/dashboard/overview').catch(() => ({})),
         pointsApi.myPointSummary().catch(() => ({ totalPoints: 0 })),
         request.get('/api/health/latest', { limit: 100 }).catch(() => []),
-        request.get('/api/health/page', { pageNum: 1, pageSize: 100 }).catch(() => ({})),
-        request.get('/api/challenge/my/list').catch(() => [])
+        request.get('/api/challenge/my').catch(() => []),
+        request.get('/api/dashboard/trend', { days: 7 }).catch(() => [])
       ]);
 
       if (profileRaw) {
@@ -136,12 +135,11 @@ Page({
       const overview = this.normalizeOverview(
         overviewRaw || {},
         pointSummary || {},
-        healthLatest,
-        healthPage || {},
-        myChallenges
+        healthLatest || [],
+        myChallenges || []
       );
 
-      const trendList = this.buildTrendFromHealth(healthLatest, healthPage);
+      const trendList = this.normalizeTrend(trendRaw || []);
 
       this.setData({
         overview,
@@ -173,23 +171,22 @@ Page({
     return [];
   },
 
-  getTotalFromAny(raw) {
-    if (!raw) return 0;
-    if (typeof raw.total === 'number') return raw.total;
-    if (raw.data && typeof raw.data.total === 'number') return raw.data.total;
-    return 0;
+  pickNumber(obj, keys, defaultValue = 0) {
+    const source = obj || {};
+    for (const key of keys) {
+      const value = source[key];
+      if (typeof value === 'number' && !Number.isNaN(value)) {
+        return value;
+      }
+    }
+    return defaultValue;
   },
 
-  normalizeOverview(o, pointSummary, healthLatest, healthPage, myChallenges) {
-    const pickNum = (...keys) => {
-      for (const k of keys) {
-        const v = o && o[k];
-        if (typeof v === 'number') return v;
-      }
-      return 0;
-    };
+  normalizeOverview(overviewRaw, pointSummary, healthLatest, myChallenges) {
+    const latestList = this.getArrayFromAny(healthLatest);
+    const challengeList = this.getArrayFromAny(myChallenges);
 
-    const pointTotal =
+    const totalPoints =
       (pointSummary && (
         pointSummary.totalPoints ||
         pointSummary.total ||
@@ -197,42 +194,57 @@ Page({
         pointSummary.score
       )) || 0;
 
-    const latestList = this.getArrayFromAny(healthLatest);
-    const pageList = this.getArrayFromAny(healthPage);
-    const pageTotal = this.getTotalFromAny(healthPage);
-
-    const totalRecords =
-      pageTotal ||
-      pageList.length ||
-      latestList.length ||
-      pickNum('totalRecords', 'total', 'recordsTotal');
+    const totalRecordsFallback = latestList.length;
 
     const today = this.formatDate(new Date());
-    const todayRecords = latestList.filter(item => {
+    const todayRecordsFallback = latestList.filter(item => {
       const t = item && (item.recordDate || item.createTime || item.updateTime || '');
       return String(t).slice(0, 10) === today;
     }).length;
 
-    const challengeList = this.getArrayFromAny(myChallenges);
-    const activeChallenges = challengeList.filter(item => {
+    const activeChallengesFallback = challengeList.filter(item => {
       return !(item.finished === 1 || item.finished === true);
     }).length;
 
+    const stats7 = overviewRaw && overviewRaw.stats7days ? overviewRaw.stats7days : {};
+    const latest = overviewRaw && overviewRaw.latest ? overviewRaw.latest : {};
+
+    const totalRecords = this.pickNumber(
+      overviewRaw,
+      ['totalRecords', 'total', 'recordsTotal'],
+      totalRecordsFallback
+    );
+
+    const todayRecords = this.pickNumber(
+      overviewRaw,
+      ['todayRecords', 'today', 'todayTotal'],
+      this.pickNumber(stats7, ['count'], todayRecordsFallback)
+    );
+
+    const activeChallenges = this.pickNumber(
+      overviewRaw,
+      ['activeChallenges', 'challenges', 'challengeActive'],
+      activeChallengesFallback
+    );
+
     return {
       totalRecords: Number(totalRecords || 0),
-      todayRecords: Number(todayRecords || pickNum('todayRecords', 'today', 'todayTotal') || 0),
-      activeChallenges: Number(activeChallenges || pickNum('activeChallenges', 'challenges', 'challengeActive') || 0),
-      totalPoints: Number(pointTotal || 0)
+      todayRecords: Number(todayRecords || 0),
+      activeChallenges: Number(activeChallenges || 0),
+      totalPoints: Number(totalPoints || 0),
+      latestBmi: latest && latest.bmi ? Number(latest.bmi) : 0
     };
   },
 
-  buildTrendFromHealth(healthLatest, healthPage) {
-    const latestList = this.getArrayFromAny(healthLatest);
-    const pageList = this.getArrayFromAny(healthPage);
-    const sourceList = latestList.length ? latestList : pageList;
+  normalizeTrend(raw) {
+    const list = this.getArrayFromAny(raw);
+
+    if (!list.length) {
+      return [];
+    }
 
     const last7Days = [];
-    const countMap = {};
+    const valueMap = {};
 
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
@@ -240,22 +252,46 @@ Page({
       const full = this.formatDate(d);
       const short = full.slice(5);
       last7Days.push({ full, short });
-      countMap[full] = 0;
+      valueMap[full] = null;
     }
 
-    sourceList.forEach(item => {
-      const rawDate = item && (item.recordDate || item.createTime || item.updateTime || '');
-      const day = String(rawDate).slice(0, 10);
-      if (countMap.hasOwnProperty(day)) {
-        countMap[day] += 1;
-      }
+    list.forEach(item => {
+      const fullTime = item && item.time ? String(item.time) : '';
+      const fullDate = fullTime.slice(0, 10);
+      if (!valueMap.hasOwnProperty(fullDate)) return;
+
+      const value = this.pickTrendValue(item);
+      if (value === null || value === undefined || Number.isNaN(value)) return;
+
+      valueMap[fullDate] = Number(value);
     });
 
     return last7Days.map(x => ({
       date: x.short,
       fullDate: x.full,
-      value: countMap[x.full] || 0
+      value: valueMap[x.full] == null ? 0 : valueMap[x.full]
     }));
+  },
+
+  pickTrendValue(item) {
+    if (!item) return null;
+
+    const bmi = Number(item.bmi);
+    if (!Number.isNaN(bmi) && bmi > 0) return bmi;
+
+    const weightKg = Number(item.weightKg);
+    if (!Number.isNaN(weightKg) && weightKg > 0) return weightKg;
+
+    const steps = Number(item.steps);
+    if (!Number.isNaN(steps) && steps > 0) return steps;
+
+    const sleepHours = Number(item.sleepHours);
+    if (!Number.isNaN(sleepHours) && sleepHours > 0) return sleepHours;
+
+    const bloodSugar = Number(item.bloodSugar);
+    if (!Number.isNaN(bloodSugar) && bloodSugar > 0) return bloodSugar;
+
+    return null;
   },
 
   formatDate(date) {
@@ -294,7 +330,7 @@ Page({
 
         const values = list.map(x => Number(x.value || 0));
         const maxV = Math.max.apply(null, values.concat([1]));
-        const minV = 0;
+        const minV = Math.min.apply(null, values.concat([0]));
 
         const padTop = 20;
         const padBottom = 30;
@@ -314,7 +350,8 @@ Page({
           const x = values.length === 1
             ? padLeft + w / 2
             : padLeft + (w * i) / (values.length - 1);
-          const y = padTop + h - ((v - minV) / (maxV - minV || 1)) * h;
+
+          const y = padTop + h - ((v - minV) / ((maxV - minV) || 1)) * h;
 
           if (i === 0) ctx.moveTo(x, y);
           else ctx.lineTo(x, y);
@@ -327,7 +364,8 @@ Page({
           const x = values.length === 1
             ? padLeft + w / 2
             : padLeft + (w * i) / (values.length - 1);
-          const y = padTop + h - ((v - minV) / (maxV - minV || 1)) * h;
+
+          const y = padTop + h - ((v - minV) / ((maxV - minV) || 1)) * h;
 
           ctx.beginPath();
           ctx.arc(x, y, 3, 0, Math.PI * 2);
@@ -336,11 +374,11 @@ Page({
 
         ctx.fillStyle = '#666';
         ctx.font = '11px sans-serif';
-        list.forEach((item, i) => {
+        list.forEach((point, i) => {
           const x = list.length === 1
             ? padLeft + w / 2
             : padLeft + (w * i) / (list.length - 1);
-          ctx.fillText(item.date, x - 14, height - 8);
+          ctx.fillText(point.date, x - 14, height - 8);
         });
       });
     } catch (e) {

@@ -1,79 +1,106 @@
 <view class="page">
-  <view wx:if="{{loading}}" class="card">
-    <view class="empty">加载中...</view>
-  </view>
+  <view wx:if="{{loading}}" class="state-card">加载中...</view>
+  <view wx:if="{{errMsg}}" class="state-card err">{{errMsg}}</view>
 
-  <view wx:if="{{errMsg}}" class="card">
-    <view class="error">{{errMsg}}</view>
-  </view>
+  <block wx:if="{{!loading && !errMsg}}">
+    <view class="hero-card">
+      <view class="hero-top">
+        <view>
+          <view class="hero-title">积分中心</view>
+          <view class="hero-sub">完成挑战、发日志、评论互动都能获得积分</view>
+        </view>
+        <view class="hero-badge">成长值</view>
+      </view>
 
-  <view class="card">
-    <view class="title">我的积分</view>
-    <view class="big">{{summary.totalPoints || 0}}</view>
-    <view class="tip">通过挑战、发帖、评论、点赞等行为获得积分</view>
-    <view class="tip">我的排名：{{myRank.rank || '未上榜'}}</view>
-  </view>
+      <view class="hero-score">{{summary.totalPoints || 0}}</view>
 
-  <view class="card">
-    <view class="sub-title">我的徽章</view>
-
-    <view wx:if="{{badges.length === 0}}" class="empty">暂未获得徽章</view>
-
-    <view class="badge-list">
-      <view wx:for="{{badges}}" wx:key="id" class="badge-item">
-        <view class="badge-name">{{item.showName}}</view>
-        <view class="badge-desc">{{item.showDesc}}</view>
+      <view class="hero-bottom">
+        <view class="hero-item">
+          <view class="hero-label">我的排名</view>
+          <view class="hero-value">{{myRank.rank || '未上榜'}}</view>
+        </view>
+        <view class="hero-item">
+          <view class="hero-label">已获徽章</view>
+          <view class="hero-value">{{badges.length}}</view>
+        </view>
       </view>
     </view>
-  </view>
 
-  <view class="card">
-    <view class="sub-title">积分排行榜</view>
+    <view class="card">
+      <view class="section-title">我的徽章</view>
 
-    <view wx:if="{{leaderboard.length === 0}}" class="empty">暂无排行数据</view>
+      <view wx:if="{{badges.length === 0}}" class="empty">暂未获得徽章</view>
 
-    <block wx:for="{{leaderboard}}" wx:key="userId">
-      <view class="rank-item {{item.rankClass}}">
-        <view class="rank-left">
-          <text class="rank-badge">{{item.rankBadge}}</text>
-          <text class="rank-no">第{{item.showRank}}名</text>
-        </view>
-        <text class="rank-name">{{item.showName}}</text>
-        <text class="rank-score">{{item.showPoints}}</text>
-      </view>
-    </block>
-  </view>
-
-  <view class="card">
-    <view class="sub-title">积分流水</view>
-
-    <view wx:if="{{records.length === 0}}" class="empty">暂无积分记录</view>
-
-    <block wx:for="{{records}}" wx:key="id">
-      <view class="record-item">
-        <view class="left">
-          <view class="r-type">{{item.typeText}}</view>
-          <view class="r-remark">{{item.remark || item.reason || ''}}</view>
-        </view>
-        <view class="right">
-          <view class="r-points">{{item.pointsText}}</view>
-          <view class="r-time">{{item.timeText}}</view>
+      <view wx:if="{{badges.length > 0}}" class="badge-grid">
+        <view wx:for="{{badges}}" wx:key="id" class="badge-item">
+          <view class="badge-icon">{{item.iconText}}</view>
+          <view class="badge-name">{{item.showName}}</view>
+          <view class="badge-desc">{{item.showDesc}}</view>
         </view>
       </view>
-    </block>
-
-    <view wx:if="{{records.length > 0}}" class="more-wrap">
-      <button
-        wx:if="{{hasMore && !loadingMore}}"
-        class="more-btn"
-        size="mini"
-        bindtap="loadMoreRecords"
-      >
-        查看更多
-      </button>
-
-      <view wx:if="{{loadingMore}}" class="more-text">正在加载更多...</view>
-      <view wx:if="{{!hasMore}}" class="more-text">没有更多了</view>
     </view>
-  </view>
+
+    <view class="card">
+      <view class="section-title">积分排行榜</view>
+
+      <view wx:if="{{leaderboard.length === 0}}" class="empty">暂无排行数据</view>
+
+      <block wx:if="{{leaderboard.length > 0}}">
+        <view class="podium">
+          <view wx:for="{{topThree}}" wx:key="userId" class="podium-item {{item.rankClass}}">
+            <view class="podium-badge">{{item.rankBadge}}</view>
+            <view class="podium-name">{{item.showName}}</view>
+            <view class="podium-score">{{item.showPoints}} 分</view>
+          </view>
+        </view>
+
+        <view class="rank-list">
+          <view wx:for="{{otherRanks}}" wx:key="userId" class="rank-item">
+            <view class="rank-left">
+              <view class="rank-no">#{{item.showRank}}</view>
+              <view class="rank-name">{{item.showName}}</view>
+            </view>
+            <view class="rank-score">{{item.showPoints}}</view>
+          </view>
+        </view>
+      </block>
+    </view>
+
+    <view class="card">
+      <view class="section-title">积分流水</view>
+
+      <view wx:if="{{records.length === 0}}" class="empty">暂无积分记录</view>
+
+      <block wx:for="{{records}}" wx:key="id">
+        <view class="record-item">
+          <view class="record-left">
+            <view class="record-icon">{{item.iconText}}</view>
+            <view class="record-main">
+              <view class="record-type">{{item.typeText}}</view>
+              <view class="record-remark">{{item.remark || item.reason || '系统积分变动记录'}}</view>
+              <view class="record-time">{{item.timeText}}</view>
+            </view>
+          </view>
+
+          <view class="record-points {{item.isPlus ? 'plus' : 'minus'}}">
+            {{item.pointsText}}
+          </view>
+        </view>
+      </block>
+
+      <view wx:if="{{records.length > 0}}" class="more-wrap">
+        <button
+          wx:if="{{hasMore && !loadingMore}}"
+          class="more-btn"
+          size="mini"
+          bindtap="loadMoreRecords"
+        >
+          查看更多
+        </button>
+
+        <view wx:if="{{loadingMore}}" class="more-text">正在加载更多...</view>
+        <view wx:if="{{!hasMore}}" class="more-text">没有更多了</view>
+      </view>
+    </view>
+  </block>
 </view>

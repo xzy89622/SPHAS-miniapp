@@ -1,6 +1,7 @@
 <view class="wrap">
   <view class="card">
     <view class="title">填写今日健康数据</view>
+    <view class="tip">保存后会同步支撑体质评估、风险分析和推荐模块</view>
 
     <view class="row">
       <view class="label">日期</view>
@@ -16,7 +17,7 @@
 
     <view class="row">
       <view class="label">体重(kg)</view>
-      <input class="input" type="number" placeholder="例如 65" value="{{form.weightKg}}" data-k="weightKg" bindinput="onInput" />
+      <input class="input" type="digit" placeholder="例如 65" value="{{form.weightKg}}" data-k="weightKg" bindinput="onInput" />
     </view>
 
     <view class="row2">
@@ -51,7 +52,10 @@
       <input class="input" placeholder="可选" value="{{form.remark}}" data-k="remark" bindinput="onInput" />
     </view>
 
-    <button class="btn" loading="{{submitting}}" bindtap="onSubmit">保存</button>
+    <button class="btn" loading="{{submitting}}" bindtap="onSubmit">
+      {{submitting ? '保存中...' : '保存并同步评估数据'}}
+    </button>
+
     <button class="btn2" bindtap="goLatest">查看最近记录</button>
   </view>
 </view>

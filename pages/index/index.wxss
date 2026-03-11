@@ -1,54 +1,249 @@
-.container{
-  padding: 28rpx;
-  background: #f6f7fb;
+.page {
   min-height: 100vh;
-}
-
-.header{
-  padding: 18rpx 8rpx 26rpx;
-}
-
-.title{
-  font-size: 44rpx;
-  font-weight: 800;
-}
-
-.sub{
-  margin-top: 10rpx;
-  color: #666;
-  font-size: 28rpx;
-}
-
-.grid{
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20rpx;
-}
-
-.card{
-  background: #fff;
-  border-radius: 22rpx;
   padding: 24rpx;
-  box-shadow: 0 10rpx 26rpx rgba(0,0,0,0.06);
+  box-sizing: border-box;
+  background: linear-gradient(180deg, #f6f8fb 0%, #edf5f1 100%);
 }
 
-.cardTitle{
-  font-size: 32rpx;
+.hero {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  border-radius: 30rpx;
+  padding: 30rpx 28rpx;
+  color: #ffffff;
+  box-shadow: 0 14rpx 32rpx rgba(15, 23, 42, 0.16);
+}
+
+.hero-title {
+  font-size: 46rpx;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.hero-sub {
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.hero-stats {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 26rpx;
+}
+
+.stat-card {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 24rpx;
+  padding: 22rpx 16rpx;
+  text-align: center;
+}
+
+.stat-num {
+  font-size: 42rpx;
+  font-weight: 800;
+  color: #4ade80;
+}
+
+.stat-label {
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.section-title {
+  margin-top: 24rpx;
+  margin-bottom: 16rpx;
+  font-size: 30rpx;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.quick-section,
+.panel,
+.logout-card {
+  background: #ffffff;
+  border-radius: 28rpx;
+  padding: 24rpx;
+  box-shadow: 0 14rpx 32rpx rgba(15, 23, 42, 0.06);
+}
+
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14rpx;
+}
+
+.quick-item {
+  position: relative;
+  background: #f8fafc;
+  border-radius: 22rpx;
+  padding: 22rpx 10rpx;
+  text-align: center;
+}
+
+.quick-icon {
+  font-size: 34rpx;
+}
+
+.quick-text {
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  font-weight: 700;
+  color: #334155;
+}
+
+.mini-badge {
+  position: absolute;
+  top: 10rpx;
+  right: 10rpx;
+  min-width: 34rpx;
+  height: 34rpx;
+  padding: 0 8rpx;
+  border-radius: 999rpx;
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel-title {
+  font-size: 30rpx;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 12rpx;
+}
+
+.remind-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18rpx 0;
+  border-bottom: 1rpx solid #f1f5f9;
+}
+
+.remind-item:last-child {
+  border-bottom: none;
+}
+
+.remind-left {
+  display: flex;
+  align-items: center;
+}
+
+.dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  margin-right: 14rpx;
+}
+
+.dot.blue {
+  background: #3b82f6;
+}
+
+.dot.orange {
+  background: #f59e0b;
+}
+
+.dot.red {
+  background: #ef4444;
+}
+
+.dot.gray {
+  background: #94a3b8;
+}
+
+.remind-name {
+  font-size: 26rpx;
+  color: #334155;
+}
+
+.remind-value {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #111827;
+}
+
+.service-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16rpx;
+}
+
+.service-card,
+.wide-card,
+.mini-card {
+  background: #ffffff;
+  border-radius: 26rpx;
+  padding: 24rpx 22rpx;
+  box-sizing: border-box;
+  box-shadow: 0 14rpx 32rpx rgba(15, 23, 42, 0.06);
+}
+
+.service-title,
+.wide-title,
+.mini-title {
+  font-size: 30rpx;
+  font-weight: 800;
+  color: #111827;
+}
+
+.service-desc,
+.wide-desc {
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  color: #6b7280;
+  line-height: 1.7;
+}
+
+.feature-row {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.more-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16rpx;
+}
+
+.mini-card {
+  position: relative;
+  min-height: 110rpx;
+  display: flex;
+  align-items: center;
+}
+
+.points-tag {
+  position: absolute;
+  right: 16rpx;
+  bottom: 16rpx;
+  padding: 8rpx 14rpx;
+  border-radius: 999rpx;
+  background: #ecfdf5;
+  color: #16a34a;
+  font-size: 22rpx;
   font-weight: 700;
 }
 
-.cardDesc{
+.logout-card {
+  margin-top: 24rpx;
+  background: linear-gradient(180deg, #fff1f2 0%, #ffffff 100%);
+}
+
+.logout-title {
+  font-size: 32rpx;
+  font-weight: 800;
+  color: #e11d48;
+}
+
+.logout-desc {
   margin-top: 10rpx;
   font-size: 24rpx;
-  color: #666;
-}
-
-.danger{
-  border: 1rpx solid #ffe1e1;
-}
-page { color: #111; }
-
-/* 你的首页大标题/副标题如果有单独 class，也把它们设深 */
-.title, .subtitle, .headline {
-  color: #111;
+  color: #6b7280;
 }

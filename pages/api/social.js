@@ -1,4 +1,3 @@
-// pages/api/social.js
 const request = require('../../utils/request');
 
 function getBaseUrl() {
@@ -17,22 +16,18 @@ function toAbsoluteUrl(url) {
   const base = getBaseUrl();
   if (!base) return value;
 
-  // 把 localhost 替换成当前 BASE_URL
   if (/^https?:\/\/localhost:8080/i.test(value)) {
     return value.replace(/^https?:\/\/localhost:8080/i, base);
   }
 
-  // 已经是完整地址
   if (/^https?:\/\//i.test(value)) {
     return value;
   }
 
-  // /upload/xxx.png
   if (value.startsWith('/')) {
     return base + value;
   }
 
-  // upload/xxx.png
   return `${base}/${value.replace(/^\/+/, '')}`;
 }
 
@@ -50,11 +45,49 @@ function parseImagesJson(imagesJson) {
   }
 }
 
-// 上传图片
+function unwrapPage(res) {
+  if (!res) {
+    return {
+      records: [],
+      total: 0,
+      pageNum: 1,
+      pageSize: 10
+    };
+  }
+
+  if (Array.isArray(res.records)) {
+    return {
+      records: res.records,
+      total: Number(res.total || 0),
+      pageNum: Number(res.current || res.pageNum || 1),
+      pageSize: Number(res.size || res.pageSize || 10)
+    };
+  }
+
+  if (res.data && Array.isArray(res.data.records)) {
+    return {
+      records: res.data.records,
+      total: Number(res.data.total || 0),
+      pageNum: Number(res.data.current || res.data.pageNum || 1),
+      pageSize: Number(res.data.size || res.data.pageSize || 10)
+    };
+  }
+
+  return {
+    records: [],
+    total: 0,
+    pageNum: 1,
+    pageSize: 10
+  };
+}
+
 function uploadImage(filePath) {
   return new Promise((resolve, reject) => {
     const base = getBaseUrl();
-    if (!base) return reject({ msg: 'BASE_URL 未配置' });
+    if (!base) {
+      reject({ msg: 'BASE_URL 未配置' });
+      return;
+    }
 
     const token = getToken();
     const header = {};
@@ -88,49 +121,56 @@ function uploadImage(filePath) {
   });
 }
 
-// 发帖
 function createPost(payload) {
   return request.post('/api/social/post/create', payload);
 }
 
-// 帖子分页
-function pagePosts(params) {
-  return request.get('/api/social/post/page', params || {});
+function updateRejectedPost(payload) {
+  return request.post('/api/social/post/updateRejected', payload);
 }
 
-// 帖子详情
+async function pagePosts(params) {
+  const res = await request.get('/api/social/post/page', params || {});
+  return unwrapPage(res);
+}
+
+async function pageMyPosts(params) {
+  const res = await request.get('/api/social/query/v2/post/my/page', params || {});
+  return unwrapPage(res);
+}
+
 function postDetail(postId) {
   return request.get('/api/social/post/detail', { postId });
 }
 
-// 评论分页
-function pageComments(params) {
-  return request.get('/api/social/comment/page', params || {});
+async function pageComments(params) {
+  const res = await request.get('/api/social/comment/page', params || {});
+  return unwrapPage(res);
 }
 
-// 评论
 function addComment(payload) {
   return request.post('/api/social/comment/add', payload);
 }
 
-// 点赞/取消
 function toggleLike(payload) {
   return request.post('/api/social/like/toggle', payload);
 }
 
-// 删除帖子
 function deletePost(postId) {
   return request.post(`/api/social/post/delete?postId=${postId}`, {});
 }
 
 module.exports = {
   getBaseUrl,
+  getToken,
   toAbsoluteUrl,
   normalizeImageUrls,
   parseImagesJson,
   uploadImage,
   createPost,
+  updateRejectedPost,
   pagePosts,
+  pageMyPosts,
   postDetail,
   pageComments,
   addComment,

@@ -1,13 +1,49 @@
 <view class="page">
-  <view wx:if="{{loading}}" class="status">加载中...</view>
-  <view wx:if="{{!loading && errMsg}}" class="status err">{{errMsg}}</view>
-  <view wx:if="{{!loading && list.length === 0 && !errMsg}}" class="status">你还没有参加挑战</view>
+  <view class="hero">
+    <view class="hero-title">我的挑战</view>
+    <view class="hero-sub">查看已参加挑战和完成情况</view>
+
+    <view class="hero-stats">
+      <view class="hero-stat">
+        <view class="hero-num">{{list.length}}</view>
+        <view class="hero-label">挑战数量</view>
+      </view>
+      <view class="hero-stat">
+        <view class="hero-num">{{finishedCount}}</view>
+        <view class="hero-label">已完成</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{loading && list.length === 0}}" class="state-card">加载中...</view>
+  <view wx:if="{{errMsg}}" class="state-card err">{{errMsg}}</view>
+  <view wx:if="{{!loading && list.length === 0 && !errMsg}}" class="state-card">你还没有参加挑战</view>
 
   <block wx:for="{{list}}" wx:key="id">
-    <view class="card" bindtap="goDetail" data-id="{{item.challengeId || item.id}}">
-      <view class="name">{{item.challengeTitle || item.title || item.name}}</view>
-      <view class="line">进度：{{item.progressValue || item.progress || 0}}</view>
-      <view class="line">状态：{{item.finished ? '已完成' : '进行中'}}</view>
+    <view class="challenge-card" bindtap="goDetail" data-id="{{item.id}}">
+      <view class="card-top">
+        <view class="type-tag">{{item.typeText}}</view>
+        <view class="status-tag {{item.finished ? 'ok' : 'wait'}}">
+          {{item.finished ? '已完成' : '进行中'}}
+        </view>
+      </view>
+
+      <view class="title">{{item.title}}</view>
+      <view class="desc">{{item.description}}</view>
+
+      <view class="meta-row">
+        <view class="meta-item">目标：{{item.targetValue}}</view>
+        <view class="meta-item">奖励：+{{item.rewardPoints}} 积分</view>
+      </view>
+
+      <view class="progress-wrap">
+        <view class="progress-bar">
+          <view class="progress-inner" style="{{item.progressBarStyle}}"></view>
+        </view>
+        <view class="progress-text">当前进度：{{item.progressValue}} / {{item.targetValue}}</view>
+      </view>
+
+      <view class="card-link">查看详情</view>
     </view>
   </block>
 </view>

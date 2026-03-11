@@ -1,73 +1,108 @@
 <view class="page">
-  <view wx:if="{{loading}}" class="status">加载中...</view>
-  <view wx:if="{{!loading && errMsg}}" class="status err">{{errMsg}}</view>
-
-  <view wx:if="{{!loading && post}}" class="card">
-    <view class="content">{{post.content}}</view>
-
-    <view wx:if="{{images.length > 0}}" class="imgs">
-      <image
-        wx:for="{{images}}"
-        wx:for-item="img"
-        wx:key="*this"
-        class="img"
-        src="{{img}}"
-        mode="aspectFill"
-        data-src="{{img}}"
-        bindtap="previewImg"
-      />
-    </view>
-
-    <view class="meta">
-      <text>👍 {{post.showLikeCount}}</text>
-      <text>💬 {{post.showCommentCount}}</text>
-      <text class="time">{{post.showTime}}</text>
-    </view>
-
-    <view class="actions">
-      <button
-        size="mini"
-        type="{{liked ? 'default' : 'primary'}}"
-        bindtap="toggleLike"
-      >
-        {{liked ? '已点赞' : '点赞'}}
-      </button>
-
-      <button
-        wx:if="{{canDelete}}"
-        size="mini"
-        type="warn"
-        bindtap="deletePost"
-      >
-        删除
-      </button>
-    </view>
+  <view wx:if="{{loading && !post}}" class="state-wrap">
+    <view class="state-card">加载中...</view>
   </view>
 
-  <view class="card">
-    <view class="sub-title">评论区</view>
+  <view wx:if="{{errMsg}}" class="state-wrap">
+    <view class="state-card err">{{errMsg}}</view>
+  </view>
 
-    <view class="comment-box">
-      <input
-        class="ipt"
-        placeholder="写评论..."
-        value="{{commentText}}"
-        bindinput="onCommentInput"
-      />
-      <button size="mini" type="primary" bindtap="sendComment">发送</button>
-    </view>
+  <block wx:if="{{post}}">
+    <view class="post-card">
+      <view class="post-head">
+        <view class="avatar">{{post.avatarText}}</view>
 
-    <view wx:if="{{comments.length === 0}}" class="status">暂无评论</view>
-
-    <block wx:for="{{comments}}" wx:key="id">
-      <view class="c-item">
-        <view class="c-content">{{item.content}}</view>
-        <view class="c-time">{{item.showTime}}</view>
+        <view class="head-main">
+          <view class="name-row">
+            <view class="nickname">{{post.nicknameText}}</view>
+            <view class="badge">{{statusText}}</view>
+          </view>
+          <view class="time">{{post.timeText}}</view>
+        </view>
       </view>
-    </block>
 
-    <view wx:if="{{hasMore && !cLoading}}" class="more" bindtap="loadMore">加载更多</view>
-    <view wx:if="{{cLoading}}" class="status">评论加载中...</view>
-    <view wx:if="{{!hasMore && comments.length > 0}}" class="status">没有更多评论了</view>
-  </view>
+      <view class="status-panel">
+        <view class="status-title">当前状态：{{statusText}}</view>
+        <view class="status-desc">{{statusTip}}</view>
+        <view wx:if="{{isOwnerView && !canInteract}}" class="status-link" bindtap="goMessage">去消息中心查看审核通知</view>
+      </view>
+
+      <view class="post-content">{{post.contentText}}</view>
+
+      <view wx:if="{{images.length > 0}}" class="img-grid">
+        <image
+          wx:for="{{images}}"
+          wx:key="index"
+          wx:for-item="img"
+          class="grid-img"
+          src="{{img}}"
+          mode="aspectFill"
+          data-src="{{img}}"
+          bindtap="previewImg"
+        />
+      </view>
+
+      <view class="post-footer">
+        <view class="footer-item">
+          <text class="footer-icon">👍</text>
+          <text class="footer-text">{{post.likeText}}</text>
+        </view>
+
+        <view class="footer-item">
+          <text class="footer-icon">💬</text>
+          <text class="footer-text">{{post.commentText}}</text>
+        </view>
+      </view>
+
+      <view class="action-row">
+        <view wx:if="{{canInteract}}" class="action-btn like-btn" bindtap="toggleLike">{{likeBtnText}}</view>
+        <view wx:if="{{!canInteract && !canEditRejected}}" class="action-btn mute-btn">当前状态不可互动</view>
+        <view wx:if="{{canEditRejected}}" class="action-btn edit-btn" bindtap="goEditRejected">修改后重新发布</view>
+        <view wx:if="{{canDelete}}" class="action-btn del-btn" bindtap="deletePost">删除日志</view>
+      </view>
+    </view>
+
+    <view class="comment-card">
+      <view class="comment-title-row">
+        <view class="comment-title">评论区</view>
+        <view class="comment-count">{{comments.length}} 条</view>
+      </view>
+
+      <block wx:if="{{canInteract}}">
+        <view class="comment-box">
+          <input
+            class="ipt"
+            placeholder="写下你的评论"
+            value="{{commentText}}"
+            bindinput="onCommentInput"
+          />
+          <view class="send-btn" bindtap="sendComment">发送</view>
+        </view>
+
+        <view wx:if="{{comments.length === 0 && !cLoading}}" class="empty-tip">暂无评论，来发表第一条吧</view>
+
+        <block wx:for="{{comments}}" wx:key="id">
+          <view class="comment-item">
+            <view class="comment-avatar">{{item.avatarText}}</view>
+
+            <view class="comment-main">
+              <view class="comment-top">
+                <view class="comment-user">{{item.userText}}</view>
+                <view class="comment-time">{{item.timeText}}</view>
+              </view>
+              <view class="comment-content">{{item.contentText}}</view>
+            </view>
+          </view>
+        </block>
+
+        <view wx:if="{{cLoading}}" class="more">评论加载中...</view>
+        <view wx:if="{{hasMore && !cLoading && comments.length > 0}}" class="more" bindtap="loadMore">加载更多评论</view>
+        <view wx:if="{{!hasMore && comments.length > 0}}" class="more">没有更多评论了</view>
+      </block>
+
+      <block wx:else>
+        <view class="empty-tip">待审核、驳回或隐藏的帖子不开放点赞和评论。</view>
+      </block>
+    </view>
+  </block>
 </view>

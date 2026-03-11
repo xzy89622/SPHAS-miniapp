@@ -1,50 +1,138 @@
-<view class="container">
-  <view class="header">
-    <view class="title">SPHAS 健康助手</view>
-    <view class="sub">请选择功能</view>
+<view class="page">
+  <view class="hero">
+    <view class="hero-title">SPHAS 健康助手</view>
+    <view class="hero-sub">记录、预警、互动、成长，一站式健康管理</view>
+
+    <view class="hero-stats">
+      <view class="stat-card" bindtap="goMessage">
+        <view class="stat-num">{{unreadCount}}</view>
+        <view class="stat-label">未读消息</view>
+      </view>
+      <view class="stat-card" bindtap="goPoints">
+        <view class="stat-num">{{totalPoints}}</view>
+        <view class="stat-label">我的积分</view>
+      </view>
+      <view class="stat-card" bindtap="goMySocial">
+        <view class="stat-num">{{socialPendingCount}}</view>
+        <view class="stat-label">审核中</view>
+      </view>
+    </view>
   </view>
 
-  <view class="grid">
-    <view class="card" bindtap="goNotice">
-      <view class="cardTitle">系统公告</view>
-      <view class="cardDesc">查看平台通知与公告</view>
+  <view class="quick-section">
+    <view class="section-title">快捷入口</view>
+    <view class="quick-grid">
+      <view class="quick-item" bindtap="goRecord">
+        <view class="quick-icon">📝</view>
+        <view class="quick-text">体质记录</view>
+      </view>
+      <view class="quick-item" bindtap="goRisk">
+        <view class="quick-icon">⚠️</view>
+        <view class="quick-text">风险预警</view>
+      </view>
+      <view class="quick-item" bindtap="goMessage">
+        <view class="quick-icon">🔔</view>
+        <view class="quick-text">消息中心</view>
+        <view wx:if="{{unreadCount > 0}}" class="mini-badge">{{unreadCount}}</view>
+      </view>
+      <view class="quick-item" bindtap="goMySocial">
+        <view class="quick-icon">📄</view>
+        <view class="quick-text">我的日志</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="panel remind-panel">
+    <view class="panel-title">我的动态提醒</view>
+
+    <view class="remind-item" bindtap="goMessage">
+      <view class="remind-left">
+        <view class="dot blue"></view>
+        <view class="remind-name">消息中心未读通知</view>
+      </view>
+      <view class="remind-value">{{unreadCount}} 条</view>
     </view>
 
-    <view class="card" bindtap="goArticle">
-      <view class="cardTitle">健康科普</view>
-      <view class="cardDesc">科普文章与知识库</view>
+    <view class="remind-item" bindtap="goMySocial">
+      <view class="remind-left">
+        <view class="dot orange"></view>
+        <view class="remind-name">日志审核中</view>
+      </view>
+      <view class="remind-value">{{socialPendingCount}} 条</view>
     </view>
 
-    <view class="card" bindtap="goRecord">
-      <view class="cardTitle">体质记录</view>
-      <view class="cardDesc">录入今日数据</view>
+    <view class="remind-item" bindtap="goMySocial">
+      <view class="remind-left">
+        <view class="dot red"></view>
+        <view class="remind-name">已驳回日志</view>
+      </view>
+      <view class="remind-value">{{socialRejectedCount}} 条</view>
     </view>
 
-    <view class="card" bindtap="goRisk">
-      <view class="cardTitle">风险预警</view>
-      <view class="cardDesc">生成风险评估与历史</view>
+    <view class="remind-item" bindtap="goMySocial">
+      <view class="remind-left">
+        <view class="dot gray"></view>
+        <view class="remind-name">已隐藏日志</view>
+      </view>
+      <view class="remind-value">{{socialHiddenCount}} 条</view>
+    </view>
+  </view>
+
+  <view class="section-title">健康服务</view>
+  <view class="service-grid">
+    <view class="service-card" bindtap="goAssessment">
+      <view class="service-title">健康评估</view>
+      <view class="service-desc">完成问卷并生成分析结果</view>
     </view>
 
-    <!-- ✅ 补回：问题反馈 -->
-    <view class="card" bindtap="goFeedback">
-      <view class="cardTitle">问题反馈</view>
-      <view class="cardDesc">提交问题与附件</view>
+    <view class="service-card" bindtap="goRecommend">
+      <view class="service-title">今日推荐</view>
+      <view class="service-desc">查看饮食与运动建议</view>
     </view>
 
-    <view class="card" bindtap="goLatest">
-      <view class="cardTitle">最近记录</view>
-      <view class="cardDesc">查看近 7 条数据</view>
+    <view class="service-card" bindtap="goLatest">
+      <view class="service-title">最近记录</view>
+      <view class="service-desc">查看近 7 条数据</view>
     </view>
 
-    <view class="card danger" bindtap="logout">
-      <view class="cardTitle">退出登录</view>
-      <view class="cardDesc">清除 token 并返回登录页</view>
+    <view class="service-card" bindtap="goDashboard">
+      <view class="service-title">健康数据看板</view>
+      <view class="service-desc">查看总览与最近趋势</view>
+    </view>
+  </view>
+
+  <view class="section-title">社区互动</view>
+  <view class="feature-row">
+    <view class="wide-card" bindtap="goSocial">
+      <view class="wide-title">健康社区</view>
+      <view class="wide-desc">发帖、点赞、评论互动</view>
     </view>
 
-    <!-- 健康数据看板 -->
-<view class="card" bindtap="goDashboard">
-  <view class="cardTitle">健康数据看板</view>
-  <view class="cardDesc">查看总览与最近趋势</view>
-</view>
+    <view class="wide-card" bindtap="goChallenge">
+      <view class="wide-title">健康挑战</view>
+      <view class="wide-desc">参加挑战并查看排行榜</view>
+    </view>
+  </view>
+
+  <view class="section-title">更多功能</view>
+  <view class="more-grid">
+    <view class="mini-card" bindtap="goNotice">
+      <view class="mini-title">系统公告</view>
+    </view>
+    <view class="mini-card" bindtap="goArticle">
+      <view class="mini-title">健康科普</view>
+    </view>
+    <view class="mini-card" bindtap="goFeedback">
+      <view class="mini-title">问题反馈</view>
+    </view>
+    <view class="mini-card" bindtap="goPoints">
+      <view class="mini-title">积分勋章</view>
+      <view wx:if="{{totalPoints > 0}}" class="points-tag">{{totalPoints}}分</view>
+    </view>
+  </view>
+
+  <view class="logout-card" bindtap="logout">
+    <view class="logout-title">退出登录</view>
+    <view class="logout-desc">清除 token 并返回登录页</view>
   </view>
 </view>

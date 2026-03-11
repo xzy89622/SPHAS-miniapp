@@ -1,66 +1,111 @@
 <view class="page">
-  <view wx:if="{{loading}}" class="status">加载中...</view>
-  <view wx:if="{{!loading && errMsg}}" class="status err">{{errMsg}}</view>
+  <view wx:if="{{loading}}" class="state-card">加载中...</view>
+  <view wx:if="{{errMsg}}" class="state-card err">{{errMsg}}</view>
 
-  <view wx:if="{{!loading && detail}}" class="card">
-    <view class="title">{{detail.title || detail.name || '挑战详情'}}</view>
-    <view class="desc">{{detail.description || detail.content || ''}}</view>
-
-    <view class="line">目标值：{{detail.targetValue || detail.target || '-'}}</view>
-    <view class="line">奖励积分：{{detail.rewardPoints || detail.points || 0}}</view>
-    <view class="line">开始时间：{{detail.startTime || detail.startDate || '-'}}</view>
-    <view class="line">结束时间：{{detail.endTime || detail.endDate || '-'}}</view>
-  </view>
-
-  <view wx:if="{{!loading && detail}}" class="card">
-    <view class="sub-title">我的状态</view>
-    <view class="line">是否报名：{{joined ? '已报名' : '未报名'}}</view>
-    <view class="line">当前进度：{{progressValue}}</view>
-    <view class="line">是否完成：{{finished ? '已完成' : '未完成'}}</view>
-
-    <view wx:if="{{myProgressRank}}" class="line">
-      我的进度排名：第{{(myProgressRank.rank || 0)}}名，分数 {{myProgressRank.score || 0}}
-    </view>
-
-    <view wx:if="{{myFinishRank}}" class="line">
-      我的完成排名：第{{(myFinishRank.rank || 0)}}名，分数 {{myFinishRank.score || 0}}
-    </view>
-
-    <button wx:if="{{!joined}}" type="primary" bindtap="joinNow">报名挑战</button>
-
-    <view wx:if="{{joined && !finished}}" class="progress-box">
-      <input
-        class="ipt"
-        type="number"
-        placeholder="输入新的进度值"
-        value="{{progressInput}}"
-        bindinput="onProgressInput"
-      />
-      <button size="mini" type="primary" bindtap="saveProgress">更新进度</button>
-    </view>
-
-    <button wx:if="{{joined && !finished}}" bindtap="finishNow">完成挑战</button>
-  </view>
-
-  <view wx:if="{{progressRankList.length > 0}}" class="card">
-    <view class="sub-title">进度排行榜</view>
-    <block wx:for="{{progressRankList}}" wx:key="userId">
-      <view class="rank-item">
-        <text>第{{item.rank}}名</text>
-        <text>用户 {{item.userId}}</text>
-        <text>{{item.score || 0}}</text>
+  <block wx:if="{{!loading && detail}}">
+    <view class="hero-card">
+      <view class="hero-top">
+        <view class="type-tag">{{detail.typeText}}</view>
+        <view class="reward-tag">+{{detail.rewardPoints}} 积分</view>
       </view>
-    </block>
-  </view>
 
-  <view wx:if="{{finishRankList.length > 0}}" class="card">
-    <view class="sub-title">完成排行榜</view>
-    <block wx:for="{{finishRankList}}" wx:key="userId">
-      <view class="rank-item">
-        <text>第{{item.rank}}名</text>
-        <text>用户 {{item.userId}}</text>
-        <text>{{item.score || 0}}</text>
+      <view class="hero-title">{{detail.title}}</view>
+      <view class="hero-desc">{{detail.description}}</view>
+    </view>
+
+    <view class="card">
+      <view class="section-title">挑战信息</view>
+
+      <view class="info-row">
+        <view class="info-label">目标值</view>
+        <view class="info-value">{{detail.targetValue}}</view>
       </view>
-    </block>
-  </view>
+      <view class="info-row">
+        <view class="info-label">开始日期</view>
+        <view class="info-value">{{detail.startDateText}}</view>
+      </view>
+      <view class="info-row">
+        <view class="info-label">结束日期</view>
+        <view class="info-value">{{detail.endDateText}}</view>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="section-title">我的状态</view>
+
+      <view class="info-row">
+        <view class="info-label">参与状态</view>
+        <view class="info-value">{{joinedText}}</view>
+      </view>
+      <view class="info-row">
+        <view class="info-label">完成状态</view>
+        <view class="info-value">{{finishedText}}</view>
+      </view>
+      <view class="info-row">
+        <view class="info-label">当前进度</view>
+        <view class="info-value">{{progressValue}} / {{detail.targetValue}}</view>
+      </view>
+
+      <view class="progress-wrap">
+        <view class="progress-bar">
+          <view class="progress-inner" style="{{progressBarStyle}}"></view>
+        </view>
+        <view class="progress-text">完成度 {{progressPercent}}%</view>
+      </view>
+
+      <view wx:if="{{showMyProgressRank}}" class="rank-tip">
+        我的进度排名：第 {{myProgressRank.rank}} 名
+      </view>
+
+      <view wx:if="{{showMyFinishRank}}" class="rank-tip">
+        我的完成排名：第 {{myFinishRank.rank}} 名
+      </view>
+
+      <button wx:if="{{!joined}}" class="main-btn" type="primary" bindtap="joinNow">报名挑战</button>
+
+      <view wx:if="{{joined && !finished}}" class="action-box">
+        <input
+          class="ipt"
+          type="number"
+          placeholder="请输入新的进度值"
+          value="{{progressInput}}"
+          bindinput="onProgressInput"
+        />
+        <view class="btn-row">
+          <button size="mini" class="ghost-btn" bindtap="fillTarget">填入目标值</button>
+          <button size="mini" class="mini-main-btn" type="primary" bindtap="saveProgress">更新进度</button>
+        </view>
+      </view>
+
+      <button wx:if="{{joined && !finished}}" class="finish-btn" bindtap="finishNow">
+        完成挑战
+      </button>
+    </view>
+
+    <view wx:if="{{progressRankList.length > 0}}" class="card">
+      <view class="section-title">进度排行榜</view>
+      <block wx:for="{{progressRankList}}" wx:key="index">
+        <view class="rank-item">
+          <view class="rank-left">
+            <view class="rank-no">#{{item.rankText}}</view>
+            <view class="rank-user">{{item.userText}}</view>
+          </view>
+          <view class="rank-score">{{item.scoreText}}</view>
+        </view>
+      </block>
+    </view>
+
+    <view wx:if="{{finishRankList.length > 0}}" class="card">
+      <view class="section-title">完成排行榜</view>
+      <block wx:for="{{finishRankList}}" wx:key="index">
+        <view class="rank-item">
+          <view class="rank-left">
+            <view class="rank-no">#{{item.rankText}}</view>
+            <view class="rank-user">{{item.userText}}</view>
+          </view>
+          <view class="rank-score">{{item.scoreText}}</view>
+        </view>
+      </block>
+    </view>
+  </block>
 </view>

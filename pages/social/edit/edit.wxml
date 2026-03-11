@@ -1,10 +1,11 @@
 <view class="page">
   <view class="card">
-    <view class="card-title">发布健康日志</view>
+    <view class="title">修改后重新发布</view>
+    <view class="sub">修改已驳回日志，提交后会重新进入审核流程</view>
 
     <textarea
       class="ta"
-      placeholder="写下你的健康打卡、运动记录、饮食分享或今日感受"
+      placeholder="请输入日志内容"
       value="{{content}}"
       bindinput="onInput"
       maxlength="500"
@@ -15,12 +16,12 @@
 
   <view class="card">
     <view class="row">
-      <view class="label">上传图片</view>
-      <view class="choose-btn" bindtap="chooseImgs">选择图片</view>
+      <view class="label">图片</view>
+      <view class="choose-btn" bindtap="chooseImgs">添加图片</view>
     </view>
 
     <view class="imgs">
-      <view wx:for="{{images}}" wx:key="*this" class="img-wrap">
+      <view wx:for="{{images}}" wx:key="index" class="img-wrap">
         <image
           class="img"
           src="{{item}}"
@@ -31,11 +32,9 @@
         <view class="del" data-idx="{{index}}" bindtap="removeImg">×</view>
       </view>
     </view>
-
-    <view class="hint">最多上传 6 张图片，发布后需要管理员审核。</view>
   </view>
 
   <button type="primary" bindtap="submit" disabled="{{submitting}}">
-    {{submitting ? '发布中...' : '立即发布'}}
+    {{submitting ? '提交中...' : '保存并重新发布'}}
   </button>
 </view>

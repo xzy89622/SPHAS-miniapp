@@ -1,4 +1,3 @@
-// pages/points/index/index.js
 const api = require('../../api/points.js');
 
 Page({
@@ -24,7 +23,7 @@ Page({
     if (!app.requireLogin()) return;
     this.loadAll();
   },
-  
+
   onShow() {
     const app = getApp();
     if (!app || typeof app.requireLogin !== 'function') return;
@@ -38,7 +37,7 @@ Page({
 
   getRecordTypeText(type) {
     const map = {
-      POST_CREATE: '发布帖子',
+      POST_CREATE: '发布日志',
       POST_LIKE: '点赞互动',
       POST_COMMENT: '评论互动',
       CHALLENGE_FINISH: '完成挑战',
@@ -49,25 +48,25 @@ Page({
     return map[type] || type || '积分变动';
   },
 
+  getRecordIcon(type) {
+    const map = {
+      POST_CREATE: '📝',
+      POST_LIKE: '👍',
+      POST_COMMENT: '💬',
+      CHALLENGE_FINISH: '🏆',
+      CHALLENGE_JOIN: '🎯',
+      LOGIN_DAILY: '📅',
+      SIGN_IN: '✅'
+    };
+    return map[type] || '✨';
+  },
+
   formatTime(timeStr) {
     if (!timeStr) return '';
     return String(timeStr)
       .replace('T', ' ')
       .replace(/\.\d+$/, '')
       .slice(0, 16);
-  },
-
-  normalizeRecords(records) {
-    if (!Array.isArray(records)) return [];
-    return records.map(item => {
-      const points = Number(item.points || 0);
-      return {
-        ...item,
-        typeText: this.getRecordTypeText(item.type || item.bizType),
-        timeText: this.formatTime(item.createTime || item.updateTime),
-        pointsText: `${points > 0 ? '+' : ''}${points}`
-      };
-    });
   },
 
   getRankClass(rank) {
@@ -81,18 +80,39 @@ Page({
     if (rank === 1) return '🥇';
     if (rank === 2) return '🥈';
     if (rank === 3) return '🥉';
-    return '';
+    return `#${rank}`;
+  },
+
+  getBadgeIcon(index) {
+    const icons = ['🏅', '🎖️', '🌟', '🔥', '💪', '🚀', '🎯', '👑'];
+    return icons[index % icons.length];
+  },
+
+  normalizeRecords(records) {
+    if (!Array.isArray(records)) return [];
+    return records.map(item => {
+      const points = Number(item.points || 0);
+      const type = item.type || item.bizType;
+      return {
+        ...item,
+        typeText: this.getRecordTypeText(type),
+        iconText: this.getRecordIcon(type),
+        timeText: this.formatTime(item.createTime || item.updateTime),
+        pointsText: `${points > 0 ? '+' : ''}${points}`,
+        isPlus: points >= 0
+      };
+    });
   },
 
   normalizeLeaderboard(list) {
     if (!Array.isArray(list)) return [];
     return list.map((item, index) => {
-      const rank = item.rank || (index + 1);
+      const rank = Number(item.rank || (index + 1));
       return {
         ...item,
         showRank: rank,
-        showName: item.nickname || item.username || ('用户' + (item.userId || (index + 1))),
-        showPoints: item.totalPoints || item.points || item.score || 0,
+        showName: item.nickname || item.username || ('用户' + (item.userId || rank)),
+        showPoints: Number(item.totalPoints || item.points || item.score || 0),
         rankClass: this.getRankClass(rank),
         rankBadge: this.getRankBadge(rank)
       };
@@ -101,11 +121,22 @@ Page({
 
   normalizeBadges(list) {
     if (!Array.isArray(list)) return [];
-    return list.map(item => ({
+    return list.map((item, index) => ({
       ...item,
       showName: item.name || item.badgeName || '未命名徽章',
-      showDesc: item.description || item.remark || ''
+      showDesc: item.description || item.remark || '继续完成挑战和互动可获得更多徽章',
+      iconText: this.getBadgeIcon(index)
     }));
+  },
+
+  getTopThree(list) {
+    if (!Array.isArray(list)) return [];
+    return list.slice(0, 3);
+  },
+
+  getOtherRanks(list) {
+    if (!Array.isArray(list)) return [];
+    return list.slice(3);
   },
 
   async loadAll() {
@@ -131,25 +162,27 @@ Page({
         }))
       ]);
 
+      const finalLeaderboard = this.normalizeLeaderboard(leaderboard);
       const firstRecords = this.normalizeRecords(recordPage.records || []);
       const pageSize = recordPage.pageSize || this.data.pageSize;
       const total = Number(recordPage.total || 0);
-      const hasMore = total > firstRecords.length;
 
       this.setData({
         summary: summary || {},
         myRank: myRank || {},
         badges: this.normalizeBadges(badges),
-        leaderboard: this.normalizeLeaderboard(leaderboard),
+        leaderboard: finalLeaderboard,
+        topThree: this.getTopThree(finalLeaderboard),
+        otherRanks: this.getOtherRanks(finalLeaderboard),
         records: firstRecords,
         pageNum: 1,
         pageSize,
-        hasMore
+        hasMore: total > firstRecords.length
       });
     } catch (e) {
       console.log('[points] loadAll fail', e);
       this.setData({
-        errMsg: e.msg || '加载失败'
+        errMsg: e.msg || e.message || '加载失败'
       });
     } finally {
       this.setData({
@@ -185,7 +218,7 @@ Page({
     } catch (e) {
       console.log('[points] loadMoreRecords fail', e);
       wx.showToast({
-        title: e.msg || '加载更多失败',
+        title: e.msg || e.message || '加载更多失败',
         icon: 'none'
       });
     } finally {

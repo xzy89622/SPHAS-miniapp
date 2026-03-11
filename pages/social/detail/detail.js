@@ -1,19 +1,64 @@
-// pages/social/detail/detail.js
 const socialApi = require('../../api/social.js');
+
+function formatTime(timeStr) {
+  if (!timeStr) return '';
+  return String(timeStr)
+    .replace('T', ' ')
+    .replace(/\.\d+$/, '')
+    .slice(0, 16);
+}
+
+function getUserName(post) {
+  if (!post) return '用户';
+  return post.nickname || post.nickName || post.username || post.userName || `用户${post.userId || ''}`;
+}
+
+function getAvatarText(name) {
+  const text = String(name || '用').trim();
+  return text ? text.slice(0, 1) : '用';
+}
+
+function safeArray(list) {
+  return Array.isArray(list) ? list.filter(Boolean) : [];
+}
+
+function mapStatusText(status) {
+  if (status === 1) return '已发布';
+  if (status === 2) return '审核中';
+  if (status === 3) return '已驳回';
+  if (status === 0) return '已隐藏';
+  return '未知状态';
+}
+
+function mapStatusTip(status) {
+  if (status === 1) return '该帖子已通过审核，社区用户可见。';
+  if (status === 2) return '该帖子正在等待管理员审核，审核通过后才会展示到社区。';
+  if (status === 3) return '该帖子已被管理员驳回，你可以修改后重新提交审核。';
+  if (status === 0) return '该帖子当前已被隐藏，具体原因请到消息中心查看审核通知。';
+  return '';
+}
 
 Page({
   data: {
     id: 0,
     loading: true,
     errMsg: '',
+
     post: null,
     images: [],
     liked: false,
+    likeBtnText: '点赞',
     canDelete: false,
 
-    currentUserId: '',
+    statusText: '',
+    statusTip: '',
+    canInteract: false,
+    isOwnerView: false,
+    canEditRejected: false,
 
+    currentUserId: '',
     commentText: '',
+
     comments: [],
     cLoading: false,
     pageNum: 1,
@@ -25,88 +70,100 @@ Page({
     const app = getApp();
     if (!app || typeof app.requireLogin !== 'function') return;
     if (!app.requireLogin()) return;
-  
+
     const id = Number(options.id || 0);
     const currentUserId = wx.getStorageSync('userId') || '';
-  
+
     this.setData({
       id,
       currentUserId
     });
-  
+
     this.loadAll();
   },
 
-  onShow() {
-    const app = getApp();
-    if (!app || typeof app.requireLogin !== 'function') return;
-    if (!app.requireLogin()) return;
-  
-    const currentUserId = wx.getStorageSync('userId') || '';
-    if (String(currentUserId) !== String(this.data.currentUserId || '')) {
-      this.setData({ currentUserId });
-      if (this.data.post) {
-        this.updateCanDelete(this.data.post, currentUserId);
-      }
+  onPullDownRefresh() {
+    this.loadAll().finally(() => wx.stopPullDownRefresh());
+  },
+
+  onReachBottom() {
+    if (this.data.canInteract) {
+      this.loadMore();
     }
   },
 
   async loadAll() {
-    await Promise.all([
-      this.loadDetail(),
-      this.reloadComments()
-    ]);
+    await this.loadDetail();
+
+    if (this.data.canInteract) {
+      await this.reloadComments();
+    } else {
+      this.setData({
+        comments: [],
+        hasMore: false,
+        cLoading: false
+      });
+    }
   },
 
-  safeParseImages(imagesJson) {
-    return socialApi.parseImagesJson(imagesJson);
-  },
-
-  formatTime(timeStr) {
-    if (!timeStr) return '';
-    return String(timeStr)
-      .replace('T', ' ')
-      .replace(/\.\d+$/, '')
-      .slice(0, 16);
-  },
-
-  updateCanDelete(post, currentUserId) {
+  updateOwnerFlags(post, currentUserId) {
     const uid = currentUserId || wx.getStorageSync('userId') || '';
-    const canDelete = !!(uid && post && String(uid) === String(post.userId));
-    this.setData({ canDelete });
+    const isOwnerView = !!(uid && post && String(uid) === String(post.userId));
+    const canDelete = isOwnerView;
+    const canEditRejected = isOwnerView && Number(post.status) === 3;
+
+    this.setData({
+      canDelete,
+      isOwnerView,
+      canEditRejected
+    });
   },
 
   async loadDetail() {
-    this.setData({ loading: true, errMsg: '' });
+    this.setData({
+      loading: true,
+      errMsg: ''
+    });
 
     try {
       const res = await socialApi.postDetail(this.data.id);
-
-      const postRaw = res && res.post ? res.post : null;
+      const raw = res && res.post ? res.post : {};
       const liked = !!(res && res.liked);
-      const images = postRaw ? this.safeParseImages(postRaw.imagesJson) : [];
+      const images = safeArray(socialApi.parseImagesJson(raw.imagesJson));
 
-      const post = postRaw
-        ? {
-            ...postRaw,
-            showTime: this.formatTime(postRaw.createTime),
-            showLikeCount: postRaw.likeCount || 0,
-            showCommentCount: postRaw.commentCount || 0
-          }
-        : null;
+      const nicknameText = getUserName(raw);
+      const contentText = raw.content || raw.postContent || raw.text || '暂无内容';
+      const status = Number(raw.status);
+
+      const post = {
+        ...raw,
+        nicknameText,
+        avatarText: getAvatarText(nicknameText),
+        timeText: formatTime(raw.createTime),
+        updateTimeText: formatTime(raw.updateTime),
+        contentText,
+        likeText: String(raw.likeCount || 0),
+        commentText: String(raw.commentCount || 0)
+      };
+
+      const canInteract = status === 1;
 
       this.setData({
         post,
+        images,
         liked,
-        images
+        likeBtnText: liked ? '已点赞' : '点赞',
+        statusText: mapStatusText(status),
+        statusTip: mapStatusTip(status),
+        canInteract
       });
 
-      this.updateCanDelete(post, this.data.currentUserId);
+      this.updateOwnerFlags(post, this.data.currentUserId);
     } catch (e) {
+      console.error('[social detail] loadDetail fail =', e);
       this.setData({
-        errMsg: e.msg || '加载详情失败'
+        errMsg: e.msg || e.message || '加载详情失败'
       });
-      console.log('[social detail] loadDetail fail', e);
     } finally {
       this.setData({ loading: false });
     }
@@ -114,21 +171,32 @@ Page({
 
   previewImg(e) {
     const src = e.currentTarget.dataset.src;
-    if (!src) return;
+    const urls = safeArray(this.data.images);
+    if (!src || urls.length === 0) return;
 
     wx.previewImage({
-      urls: this.data.images,
-      current: src
+      current: src,
+      urls
     });
   },
 
   async toggleLike() {
+    if (!this.data.canInteract) {
+      wx.showToast({
+        title: '当前状态不可点赞',
+        icon: 'none'
+      });
+      return;
+    }
+
     try {
-      await socialApi.toggleLike({ postId: this.data.id });
+      await socialApi.toggleLike({
+        postId: this.data.id
+      });
       await this.loadDetail();
     } catch (e) {
       wx.showToast({
-        title: e.msg || '点赞失败',
+        title: e.msg || e.message || '操作失败',
         icon: 'none'
       });
     }
@@ -154,11 +222,24 @@ Page({
           }, 300);
         } catch (e) {
           wx.showToast({
-            title: e.msg || '删除失败',
+            title: e.msg || e.message || '删除失败',
             icon: 'none'
           });
         }
       }
+    });
+  },
+
+  goMessage() {
+    wx.navigateTo({
+      url: '/pages/message/list/list'
+    });
+  },
+
+  goEditRejected() {
+    if (!this.data.canEditRejected) return;
+    wx.navigateTo({
+      url: `/pages/social/edit/edit?id=${this.data.id}`
     });
   },
 
@@ -169,6 +250,14 @@ Page({
   },
 
   async sendComment() {
+    if (!this.data.canInteract) {
+      wx.showToast({
+        title: '当前状态不可评论',
+        icon: 'none'
+      });
+      return;
+    }
+
     const content = (this.data.commentText || '').trim();
     if (!content) {
       wx.showToast({
@@ -197,7 +286,7 @@ Page({
       });
     } catch (e) {
       wx.showToast({
-        title: e.msg || '评论失败',
+        title: e.msg || e.message || '评论失败',
         icon: 'none'
       });
     }
@@ -224,15 +313,33 @@ Page({
   },
 
   normalizeComments(list) {
-    if (!Array.isArray(list)) return [];
-    return list.map(item => ({
-      ...item,
-      showTime: this.formatTime(item.createTime || item.updateTime)
-    }));
+    const arr = safeArray(list);
+
+    return arr.map(item => {
+      const row = item || {};
+      const userText =
+        row.nickname ||
+        row.nickName ||
+        row.username ||
+        row.userName ||
+        `用户${row.userId || ''}`;
+
+      return {
+        ...row,
+        userText,
+        avatarText: getAvatarText(userText),
+        timeText: formatTime(row.createTime || row.updateTime),
+        contentText: row.content || row.commentContent || row.text || '暂无内容'
+      };
+    });
   },
 
   async fetchComments(reset) {
-    this.setData({ cLoading: true });
+    if (!this.data.canInteract) return;
+
+    this.setData({
+      cLoading: true
+    });
 
     try {
       const res = await socialApi.pageComments({
@@ -244,20 +351,22 @@ Page({
       const records = this.normalizeComments(res.records || []);
       const comments = reset ? records : this.data.comments.concat(records);
       const total = Number(res.total || 0);
-      const hasMore = total > comments.length;
+      const hasMore = comments.length < total;
 
       this.setData({
         comments,
         hasMore
       });
     } catch (e) {
-      console.log('[social detail] fetchComments fail', e);
+      console.error('[social detail] fetchComments fail =', e);
       wx.showToast({
-        title: e.msg || '评论加载失败',
+        title: e.msg || e.message || '评论加载失败',
         icon: 'none'
       });
     } finally {
-      this.setData({ cLoading: false });
+      this.setData({
+        cLoading: false
+      });
     }
   }
 });
