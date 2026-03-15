@@ -1,12 +1,24 @@
-// pages/article/detail/detail.js
-// 健康科普-文章详情（对接后端：GET /api/article/{id}）
-// 将 HTML 富文本 detail.content 转为 rich-text nodes 渲染
-
 const { request } = require('../../../utils/request');
+
+function pad2(n) {
+  return String(n).padStart(2, '0');
+}
+
+function formatTime(value) {
+  if (!value) return '';
+  const text = String(value).replace('T', ' ');
+  const date = new Date(text.replace(/-/g, '/'));
+  if (Number.isNaN(date.getTime())) {
+    return text.slice(0, 16);
+  }
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())} ${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+}
 
 Page({
   data: {
     id: '',
+    loading: true,
+    errorMsg: '',
     detail: null,
     nodes: []
   },
@@ -16,7 +28,10 @@ Page({
     this.setData({ id });
 
     if (!id) {
-      wx.showToast({ title: '未获取到文章ID', icon: 'none' });
+      this.setData({
+        loading: false,
+        errorMsg: '未获取到文章 ID'
+      });
       return;
     }
 
@@ -25,22 +40,36 @@ Page({
 
   async loadDetail() {
     try {
+      this.setData({
+        loading: true,
+        errorMsg: '',
+        detail: null,
+        nodes: []
+      });
+
       const detail = await request({
         url: `/api/article/${this.data.id}`,
         method: 'GET'
       });
 
-      // 兼容：如果 request 没有自动取 data，这里兜底
       const realDetail = detail && detail.data ? detail.data : detail;
-
       const html = (realDetail && realDetail.content) ? realDetail.content : '';
 
       this.setData({
-        detail: realDetail,
+        loading: false,
+        detail: {
+          ...realDetail,
+          views: realDetail && realDetail.views != null ? realDetail.views : 0,
+          uiTime: formatTime(realDetail && (realDetail.publishTime || realDetail.createTime || realDetail.updateTime))
+        },
         nodes: htmlToNodes(html)
       });
     } catch (e) {
-      // request 内一般会 toast
+      console.error('[article detail] load fail:', e);
+      this.setData({
+        loading: false,
+        errorMsg: (e && e.msg) || (e && e.message) || '加载失败，请稍后重试'
+      });
     }
   }
 });
@@ -48,7 +77,6 @@ Page({
 /**
  * 轻量 HTML -> rich-text nodes 转换
  * 支持：p, br, strong/b, em/i, s/del, u, a, img
- * 不支持的标签会被去掉，但保留文本
  */
 function htmlToNodes(html) {
   if (!html) return [];
@@ -118,9 +146,11 @@ function parseInline(text, imgList) {
       if (src) {
         out.push({
           name: 'img',
-          attrs: { src, style: 'max-width:100%;height:auto;display:block;' }
+          attrs: {
+            src,
+            style: 'max-width:100%;height:auto;display:block;border-radius:16rpx;margin:16rpx 0;'
+          }
         });
-        
       }
       i += imgMatch[0].length;
       continue;
@@ -136,7 +166,7 @@ function parseInline(text, imgList) {
 
       out.push({
         name: 'a',
-        attrs: { href },
+        attrs: { href, style: 'color:#2563eb;' },
         children: [{ type: 'text', text: inner }]
       });
 

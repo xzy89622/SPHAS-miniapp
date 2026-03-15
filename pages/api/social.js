@@ -1,179 +1,251 @@
 const request = require('../../utils/request');
 
-function getBaseUrl() {
-  const url = wx.getStorageSync('BASE_URL') || '';
-  return String(url).trim().replace(/\/+$/, '');
-}
-
-function getToken() {
-  return wx.getStorageSync('token') || '';
-}
-
-function toAbsoluteUrl(url) {
-  const value = String(url || '').trim();
-  if (!value) return '';
-
-  const base = getBaseUrl();
-  if (!base) return value;
-
-  if (/^https?:\/\/localhost:8080/i.test(value)) {
-    return value.replace(/^https?:\/\/localhost:8080/i, base);
-  }
-
-  if (/^https?:\/\//i.test(value)) {
-    return value;
-  }
-
-  if (value.startsWith('/')) {
-    return base + value;
-  }
-
-  return `${base}/${value.replace(/^\/+/, '')}`;
-}
-
-function normalizeImageUrls(images) {
-  if (!Array.isArray(images)) return [];
-  return images.map(item => toAbsoluteUrl(item)).filter(Boolean);
-}
+// 这里把社区相关接口统一一下，后面页面都走这一份
 
 function parseImagesJson(imagesJson) {
+  if (!imagesJson) return [];
+  if (Array.isArray(imagesJson)) return imagesJson.filter(Boolean);
+
   try {
-    const arr = JSON.parse(imagesJson || '[]');
-    return normalizeImageUrls(arr);
+    const arr = JSON.parse(imagesJson);
+    return Array.isArray(arr) ? arr.filter(Boolean) : [];
   } catch (e) {
     return [];
   }
 }
 
-function unwrapPage(res) {
-  if (!res) {
+function formatStatus(status) {
+  const value = Number(status);
+
+  // 后端现在是：0隐藏 1通过 2待审核 3驳回
+  if (value === 1) {
     return {
-      records: [],
-      total: 0,
-      pageNum: 1,
-      pageSize: 10
+      value: 1,
+      text: '已发布',
+      className: 'ok'
     };
   }
 
-  if (Array.isArray(res.records)) {
+  if (value === 2) {
     return {
-      records: res.records,
-      total: Number(res.total || 0),
-      pageNum: Number(res.current || res.pageNum || 1),
-      pageSize: Number(res.size || res.pageSize || 10)
+      value: 2,
+      text: '待审核',
+      className: 'pending'
     };
   }
 
-  if (res.data && Array.isArray(res.data.records)) {
+  if (value === 3) {
     return {
-      records: res.data.records,
-      total: Number(res.data.total || 0),
-      pageNum: Number(res.data.current || res.data.pageNum || 1),
-      pageSize: Number(res.data.size || res.data.pageSize || 10)
+      value: 3,
+      text: '已驳回',
+      className: 'reject'
     };
   }
 
   return {
-    records: [],
-    total: 0,
-    pageNum: 1,
-    pageSize: 10
+    value: 0,
+    text: '已隐藏',
+    className: 'hidden'
   };
 }
 
-function uploadImage(filePath) {
+function normalizePost(post) {
+  const row = post || {};
+  const images = parseImagesJson(row.imagesJson || row.images);
+  const statusInfo = formatStatus(row.status);
+  const nickname = row.nickname || row.nickName || row.username || row.userName || `用户${row.userId || ''}`;
+
+  return {
+    ...row,
+    id: Number(row.id || 0),
+    userId: Number(row.userId || 0),
+    nickname,
+    images,
+    coverImage: images.length ? images[0] : '',
+    imageCount: images.length,
+    likeCount: Number(row.likeCount || 0),
+    commentCount: Number(row.commentCount || 0),
+    deletedFlag: Number(row.deletedFlag || 0),
+    status: statusInfo.value,
+    statusText: statusInfo.text,
+    statusClass: statusInfo.className
+  };
+}
+
+function normalizePostPage(res) {
+  const page = res || {};
+  const records = Array.isArray(page.records) ? page.records : [];
+
+  return {
+    ...page,
+    records: records.map(normalizePost),
+    total: Number(page.total || 0),
+    current: Number(page.current || page.pageNum || 1),
+    size: Number(page.size || page.pageSize || 10)
+  };
+}
+
+function normalizeComment(comment) {
+  const row = comment || {};
+  return {
+    ...row,
+    id: Number(row.id || 0),
+    postId: Number(row.postId || 0),
+    userId: Number(row.userId || 0),
+    nickname: row.nickname || row.nickName || row.username || row.userName || `用户${row.userId || ''}`,
+    content: row.content || row.commentContent || ''
+  };
+}
+
+function normalizeCommentPage(res) {
+  const page = res || {};
+  const records = Array.isArray(page.records) ? page.records : [];
+
+  return {
+    ...page,
+    records: records.map(normalizeComment),
+    total: Number(page.total || 0),
+    current: Number(page.current || page.pageNum || 1),
+    size: Number(page.size || page.pageSize || 10)
+  };
+}
+
+// 社区流分页
+async function pagePosts(params) {
+  const res = await request.get('/api/social/query/v2/post/page', params || {});
+  return normalizePostPage(res);
+}
+
+// 我的帖子分页
+async function myPosts(params) {
+  const res = await request.get('/api/social/query/v2/post/my/page', params || {});
+  return normalizePostPage(res);
+}
+
+// 我的帖子统计
+async function myPostStats() {
+  const res = await request.get('/api/social/query/v2/post/my/stats', {});
+  return {
+    total: Number(res.totalCount || 0),
+    pending: Number(res.pendingCount || 0),
+    passed: Number(res.publishedCount || 0),
+    rejected: Number(res.rejectedCount || 0),
+    hidden: Number(res.hiddenCount || 0)
+  };
+}
+
+// 帖子详情
+async function postDetail(postId) {
+  const res = await request.get('/api/social/post/detail', { postId });
+  const post = normalizePost(res && res.post ? res.post : {});
+
+  return {
+    ...res,
+    post,
+    liked: !!(res && res.liked)
+  };
+}
+
+// 发布帖子
+function createPost(data) {
+  return request.post('/api/social/post/create', {
+    content: data && data.content ? String(data.content).trim() : '',
+    imagesJson: data && data.imagesJson ? data.imagesJson : '[]'
+  });
+}
+
+// 只允许驳回后重新提交
+function updatePost(data) {
+  return request.post('/api/social/post/updateRejected', {
+    postId: data && data.postId ? Number(data.postId) : Number(data && data.id),
+    content: data && data.content ? String(data.content).trim() : '',
+    imagesJson: data && data.imagesJson ? data.imagesJson : '[]'
+  });
+}
+
+function deletePost(postId) {
+  return request.post('/api/social/post/delete', { postId: Number(postId) });
+}
+
+function toggleLike(postId) {
+  return request.post('/api/social/like/toggle', {
+    postId: Number(postId)
+  });
+}
+
+async function commentList(postId, params) {
+  const query = Object.assign(
+    {
+      postId: Number(postId),
+      pageNum: 1,
+      pageSize: 20
+    },
+    params || {}
+  );
+
+  const res = await request.get('/api/social/query/v2/comment/page', query);
+  return normalizeCommentPage(res);
+}
+
+function addComment(data) {
+  return request.post('/api/social/comment/add', {
+    postId: Number(data && data.postId),
+    content: data && data.content ? String(data.content).trim() : ''
+  });
+}
+
+function uploadSocialImage(filePath) {
   return new Promise((resolve, reject) => {
-    const base = getBaseUrl();
-    if (!base) {
-      reject({ msg: 'BASE_URL 未配置' });
+    const token = wx.getStorageSync('token') || '';
+    const baseUrl = (wx.getStorageSync('BASE_URL') || '').replace(/\/+$/, '');
+
+    if (!baseUrl) {
+      reject(new Error('BASE_URL 未配置'));
       return;
     }
 
-    const token = getToken();
-    const header = {};
-    if (token) {
-      header.Authorization = token.startsWith('Bearer ')
-        ? token
-        : `Bearer ${token}`;
-    }
-
     wx.uploadFile({
-      url: base + '/api/social/upload',
+      url: `${baseUrl}/api/social/upload`,
       filePath,
       name: 'file',
-      header,
+      header: token
+        ? { Authorization: token.startsWith('Bearer ') ? token : `Bearer ${token}` }
+        : {},
       success(res) {
         try {
           const data = JSON.parse(res.data || '{}');
-          if (data.code === 0 || data.code === 200 || data.code === '0' || data.code === '200') {
-            resolve(toAbsoluteUrl(data.data));
-          } else {
-            reject({ msg: data.msg || '上传失败', body: data });
+          if (data.code === 200 || data.code === 0 || data.code === '200' || data.code === '0') {
+            resolve(data.data || '');
+            return;
           }
+          reject(new Error(data.msg || '上传失败'));
         } catch (e) {
-          reject({ msg: '上传返回解析失败', raw: res.data });
+          reject(new Error('上传结果解析失败'));
         }
       },
       fail(err) {
-        reject({ msg: err.errMsg || '上传失败', err });
+        reject(err);
       }
     });
   });
 }
 
-function createPost(payload) {
-  return request.post('/api/social/post/create', payload);
-}
-
-function updateRejectedPost(payload) {
-  return request.post('/api/social/post/updateRejected', payload);
-}
-
-async function pagePosts(params) {
-  const res = await request.get('/api/social/post/page', params || {});
-  return unwrapPage(res);
-}
-
-async function pageMyPosts(params) {
-  const res = await request.get('/api/social/query/v2/post/my/page', params || {});
-  return unwrapPage(res);
-}
-
-function postDetail(postId) {
-  return request.get('/api/social/post/detail', { postId });
-}
-
-async function pageComments(params) {
-  const res = await request.get('/api/social/comment/page', params || {});
-  return unwrapPage(res);
-}
-
-function addComment(payload) {
-  return request.post('/api/social/comment/add', payload);
-}
-
-function toggleLike(payload) {
-  return request.post('/api/social/like/toggle', payload);
-}
-
-function deletePost(postId) {
-  return request.post(`/api/social/post/delete?postId=${postId}`, {});
-}
-
 module.exports = {
-  getBaseUrl,
-  getToken,
-  toAbsoluteUrl,
-  normalizeImageUrls,
   parseImagesJson,
-  uploadImage,
-  createPost,
-  updateRejectedPost,
+  formatStatus,
+  normalizePost,
+  normalizePostPage,
+  normalizeComment,
+  normalizeCommentPage,
   pagePosts,
-  pageMyPosts,
+  myPosts,
+  myPostStats,
   postDetail,
-  pageComments,
-  addComment,
+  createPost,
+  updatePost,
+  deletePost,
   toggleLike,
-  deletePost
+  commentList,
+  addComment,
+  uploadSocialImage
 };

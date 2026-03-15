@@ -1,35 +1,115 @@
 <view class="page">
-  <view class="card">
-    <view class="title">今日推荐</view>
-    <view class="tip">根据你的评估结果推荐内容</view>
+  <view class="hero-card">
+    <view class="hero-title">今日个性化推荐</view>
+    <view class="hero-desc">系统会根据你的健康记录、BMI 和评估结果生成今日建议</view>
+
+    <view class="hero-btn-row">
+      <button class="hero-btn ghost-btn" bindtap="onRefreshRecommend">
+        重新生成
+      </button>
+      <button class="hero-btn primary-btn" loading="{{adopting}}" disabled="{{adopting}}" bindtap="onAdoptPlan">
+        {{adopting ? '采纳中...' : '采纳今日方案'}}
+      </button>
+    </view>
   </view>
 
-  <!-- 加载中 -->
-  <view wx:if="{{loading}}" class="loading">加载中...</view>
+  <view wx:if="{{recommend}}" class="card">
+    <view class="card-title">推荐概览</view>
 
-  <!-- 非加载中 -->
-  <block wx:else>
-    <!-- 有错误 -->
-    <view wx:if="{{errMsg}}" class="error">
-      {{errMsg}}
-      <button size="mini" bindtap="loadToday">重试</button>
+    <view class="summary-grid">
+      <view class="summary-item">
+        <view class="summary-label">BMI</view>
+        <view class="summary-value">{{recommend.bmi}}</view>
+      </view>
+      <view class="summary-item">
+        <view class="summary-label">BMI等级</view>
+        <view class="summary-value">{{recommend.bmiLevel}}</view>
+      </view>
     </view>
 
-    <!-- 无错误但空 -->
-    <view wx:elif="{{items.length === 0}}" class="empty">
-      暂无推荐内容
-      <view class="empty-tip">（你可以先完成一次体质评估，再回来看看）</view>
-      <button size="mini" bindtap="loadToday">刷新</button>
+    <view class="reason-box">
+      <view class="reason-label">推荐理由</view>
+      <view class="reason-text">{{recommend.reason || '暂无推荐理由'}}</view>
+    </view>
+  </view>
+
+  <view wx:if="{{recommend && recommend.diet}}" class="card">
+    <view class="card-title">饮食推荐</view>
+    <view class="plan-name">{{recommend.diet.name}}</view>
+    <view class="plan-tag-row">
+      <text class="tag">{{recommend.diet.bmiLevel}}</text>
+      <text class="tag">{{recommend.diet.tags || '饮食建议'}}</text>
+    </view>
+    <view class="plan-content">{{recommend.diet.content}}</view>
+  </view>
+
+  <view wx:if="{{recommend && recommend.sport}}" class="card">
+    <view class="card-title">运动推荐</view>
+    <view class="plan-name">{{recommend.sport.name}}</view>
+    <view class="plan-tag-row">
+      <text class="tag">{{recommend.sport.bmiLevel}}</text>
+      <text class="tag">{{recommend.sport.intensity || '默认强度'}}</text>
+    </view>
+    <view class="plan-content">{{recommend.sport.content}}</view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">当前执行计划</view>
+
+    <view wx:if="{{currentPlan}}" class="current-plan-box">
+      <view class="current-line">计划周期：{{currentPlan.startDate}} ~ {{currentPlan.endDate}}</view>
+      <view class="current-line">状态：{{currentPlan.status}}</view>
+
+      <view wx:if="{{currentPlan.diet}}" class="mini-plan">
+        <view class="mini-title">当前饮食计划</view>
+        <view class="mini-name">{{currentPlan.diet.name}}</view>
+        <view class="mini-content">{{currentPlan.diet.content}}</view>
+      </view>
+
+      <view wx:if="{{currentPlan.sport}}" class="mini-plan">
+        <view class="mini-title">当前运动计划</view>
+        <view class="mini-name">{{currentPlan.sport.name}}</view>
+        <view class="mini-content">{{currentPlan.sport.content}}</view>
+      </view>
     </view>
 
-    <!-- 有数据 -->
-    <block wx:else>
-      <block wx:for="{{items}}" wx:for-item="it" wx:key="id">
-        <view class="item">
-          <view class="item-title">{{it.title || it.name || it.type || '推荐'}}</view>
-          <view class="item-desc">{{it.content || it.desc || it.description || it.advice || ''}}</view>
-        </view>
-      </block>
-    </block>
-  </block>
+    <view wx:else class="empty-text">
+      你还没有采纳今天的推荐方案
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">今日执行打卡</view>
+
+    <view class="checkin-row">
+      <view
+        class="checkin-item {{checkin.dietDone ? 'checkin-item-active' : ''}}"
+        bindtap="onToggleDietDone"
+      >
+        <view class="checkin-icon">{{checkin.dietDone ? '✓' : ''}}</view>
+        <view class="checkin-text">饮食已完成</view>
+      </view>
+
+      <view
+        class="checkin-item {{checkin.sportDone ? 'checkin-item-active' : ''}}"
+        bindtap="onToggleSportDone"
+      >
+        <view class="checkin-icon">{{checkin.sportDone ? '✓' : ''}}</view>
+        <view class="checkin-text">运动已完成</view>
+      </view>
+    </view>
+
+    <view class="remark-label">今日备注</view>
+    <textarea
+      class="remark-input"
+      maxlength="120"
+      placeholder="可以简单记录今天执行情况"
+      value="{{checkin.remark}}"
+      bindinput="onRemarkInput"
+    />
+
+    <button class="save-btn" loading="{{saving}}" disabled="{{saving}}" bindtap="onSaveCheckin">
+      {{saving ? '保存中...' : '保存今日打卡'}}
+    </button>
+  </view>
 </view>

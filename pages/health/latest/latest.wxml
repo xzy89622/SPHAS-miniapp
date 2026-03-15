@@ -1,31 +1,103 @@
-<view class="wrap">
-  <view class="topbar">
-    <view class="h1">最近健康记录</view>
-    <view class="actions">
-      <button class="primaryBtn" bindtap="goRecord">去录入</button>
+<view class="page">
+  <view class="hero-card">
+    <view class="hero-main">
+      <view class="hero-title">最近健康记录</view>
+      <view class="hero-desc">查看近几次录入情况，点击卡片可继续编辑当天数据</view>
+    </view>
+
+    <view class="hero-side">
+      <view class="hero-count">{{list.length}}</view>
+      <view class="hero-count-label">最近记录</view>
     </view>
   </view>
 
-  <view wx:if="{{loading}}" class="hint">加载中...</view>
+  <view class="toolbar">
+    <view class="toolbar-left">
+      <view class="toolbar-title">记录列表</view>
+      <view class="toolbar-sub">近 7 条健康数据</view>
+    </view>
 
-  <view wx:if="{{!loading && list.length===0}}" class="hint">
-    暂无记录，先去录入一条吧
+    <button class="record-btn" bindtap="goRecord">
+      <text class="record-btn-text">去录入</text>
+    </button>
   </view>
 
-  <view wx:for="{{list}}" wx:key="id" class="item" bindtap="edit" data-date="{{item.recordDate}}">
-    <view class="row">
-      <view class="date">{{item.recordDate}}</view>
-      <view class="tag" wx:if="{{item.weightKg}}">体重 {{item.weightKg}}kg</view>
-    </view>
+  <view wx:if="{{loading}}" class="state-card">
+    <view class="state-icon">⏳</view>
+    <view class="state-title">正在加载记录</view>
+    <view class="state-desc">请稍候，马上为你展示最近健康数据</view>
+  </view>
 
-    <view class="grid">
-      <view class="g" wx:if="{{item.heightCm}}">身高：{{item.heightCm}}cm</view>
-      <view class="g" wx:if="{{item.systolic && item.diastolic}}">血压：{{item.systolic}}/{{item.diastolic}}</view>
-      <view class="g" wx:if="{{item.heartRate}}">心率：{{item.heartRate}}</view>
-      <view class="g" wx:if="{{item.steps}}">步数：{{item.steps}}</view>
-      <view class="g" wx:if="{{item.sleepHours}}">睡眠：{{item.sleepHours}}h</view>
-    </view>
+  <view wx:if="{{!loading && list.length===0}}" class="state-card empty">
+    <view class="state-icon">🩺</view>
+    <view class="state-title">还没有健康记录</view>
+    <view class="state-desc">先录入一条数据，后续才能进行趋势分析和推荐</view>
+    <button class="empty-btn" bindtap="goRecord">
+      <text class="empty-btn-text">立即录入</text>
+    </button>
+  </view>
 
-    <view class="remark" wx:if="{{item.remark}}">备注：{{item.remark}}</view>
+  <view wx:if="{{!loading && list.length>0}}" class="list">
+    <view
+      wx:for="{{list}}"
+      wx:key="id"
+      class="record-card"
+      bindtap="edit"
+      data-date="{{item.recordDate}}"
+    >
+      <view class="card-top">
+        <view class="card-date-block">
+          <view class="card-date">{{item.recordDate}}</view>
+          <view class="card-tip">点击可编辑当天记录</view>
+        </view>
+
+        <view class="weight-pill" wx:if="{{item.weightKg}}">
+          体重 {{item.weightKg}}kg
+        </view>
+      </view>
+
+      <view class="metric-grid">
+        <view class="metric-chip" wx:if="{{item.heightCm}}">
+          <text class="metric-label">身高</text>
+          <text class="metric-value">{{item.heightCm}}cm</text>
+        </view>
+
+        <view class="metric-chip bmi-chip" wx:if="{{item.bmiText}}">
+          <text class="metric-label">BMI</text>
+          <text class="metric-value">{{item.bmiText}}</text>
+          <text class="metric-extra">{{item.bmiLevel}}</text>
+        </view>
+
+        <view class="metric-chip" wx:if="{{item.systolic && item.diastolic}}">
+          <text class="metric-label">血压</text>
+          <text class="metric-value">{{item.systolic}}/{{item.diastolic}}</text>
+        </view>
+
+        <view class="metric-chip" wx:if="{{item.heartRate}}">
+          <text class="metric-label">心率</text>
+          <text class="metric-value">{{item.heartRate}}</text>
+        </view>
+
+        <view class="metric-chip" wx:if="{{item.steps}}">
+          <text class="metric-label">步数</text>
+          <text class="metric-value">{{item.steps}}</text>
+        </view>
+
+        <view class="metric-chip" wx:if="{{item.sleepHours}}">
+          <text class="metric-label">睡眠</text>
+          <text class="metric-value">{{item.sleepHours}}h</text>
+        </view>
+      </view>
+
+      <view class="remark-box" wx:if="{{item.remark}}">
+        <view class="remark-label">备注</view>
+        <view class="remark-text">{{item.remark}}</view>
+      </view>
+
+      <view class="card-footer">
+        <view class="footer-text">继续完善这一天的数据</view>
+        <view class="footer-arrow">›</view>
+      </view>
+    </view>
   </view>
 </view>

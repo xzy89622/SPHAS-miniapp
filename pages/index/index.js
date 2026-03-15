@@ -48,16 +48,11 @@ Page({
 
   async loadMySocialStats() {
     try {
-      const [pendingPage, rejectedPage, hiddenPage] = await Promise.all([
-        socialApi.pageMyPosts({ pageNum: 1, pageSize: 1, status: 2 }).catch(() => ({ total: 0 })),
-        socialApi.pageMyPosts({ pageNum: 1, pageSize: 1, status: 3 }).catch(() => ({ total: 0 })),
-        socialApi.pageMyPosts({ pageNum: 1, pageSize: 1, status: 0 }).catch(() => ({ total: 0 }))
-      ]);
-
+      const res = await socialApi.myPostStats();
       this.setData({
-        socialPendingCount: Number(pendingPage.total || 0),
-        socialRejectedCount: Number(rejectedPage.total || 0),
-        socialHiddenCount: Number(hiddenPage.total || 0)
+        socialPendingCount: Number((res && res.pendingCount) || 0),
+        socialRejectedCount: Number((res && res.rejectedCount) || 0),
+        socialHiddenCount: Number((res && res.hiddenCount) || 0)
       });
     } catch (e) {
       console.log('[index] social stats fail', e);

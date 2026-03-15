@@ -1,41 +1,49 @@
 <view class="page">
   <view class="card">
-    <view class="card-title">发布健康日志</view>
+    <view class="title">发布健康日志</view>
+    <view class="desc">写下你的健康打卡、运动记录、饮食分享或今天的感受</view>
 
-    <textarea
-      class="ta"
-      placeholder="写下你的健康打卡、运动记录、饮食分享或今日感受"
-      value="{{content}}"
-      bindinput="onInput"
-      maxlength="500"
-      auto-height="true"
-    />
-    <view class="count">{{content.length}} / 500</view>
-  </view>
-
-  <view class="card">
-    <view class="row">
-      <view class="label">上传图片</view>
-      <view class="choose-btn" bindtap="chooseImgs">选择图片</view>
+    <view class="form-item">
+      <view class="label">日志内容</view>
+      <textarea
+        class="textarea"
+        placeholder="分享今天的健康打卡、饮食或运动情况"
+        value="{{content}}"
+        bindinput="onInput"
+        maxlength="500"
+        auto-height
+      />
+      <view class="count">{{content.length}} / 500</view>
     </view>
 
-    <view class="imgs">
-      <view wx:for="{{images}}" wx:key="*this" class="img-wrap">
-        <image
-          class="img"
-          src="{{item}}"
-          mode="aspectFill"
-          data-src="{{item}}"
-          bindtap="preview"
-        />
-        <view class="del" data-idx="{{index}}" bindtap="removeImg">×</view>
+    <view class="form-item">
+      <view class="label">配图</view>
+
+      <view class="image-grid">
+        <block wx:for="{{images}}" wx:key="*this">
+          <view class="img-item">
+            <image
+              class="img"
+              src="{{item}}"
+              mode="aspectFill"
+              data-src="{{item}}"
+              bindtap="preview"
+            />
+            <view class="remove-btn" data-idx="{{index}}" bindtap="removeImg">×</view>
+          </view>
+        </block>
+
+        <view wx:if="{{images.length < maxCount}}" class="add-box" bindtap="chooseImgs">
+          <view class="add-icon">+</view>
+          <view class="add-text">选择图片</view>
+        </view>
       </view>
+
+      <view class="hint">最多上传 6 张图片，发布后需要管理员审核。</view>
     </view>
 
-    <view class="hint">最多上传 6 张图片，发布后需要管理员审核。</view>
+    <button class="submit-btn" bindtap="submit" disabled="{{submitting}}">
+      {{submitting ? '发布中...' : '立即发布'}}
+    </button>
   </view>
-
-  <button type="primary" bindtap="submit" disabled="{{submitting}}">
-    {{submitting ? '发布中...' : '立即发布'}}
-  </button>
 </view>

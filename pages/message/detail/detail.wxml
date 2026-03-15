@@ -10,7 +10,7 @@
           <text>{{detail.typeText}}</text>
         </view>
 
-        <view class="read-tag {{detail.readFlag ? 'read' : 'unread'}}">
+        <view class="read-tag {{detail.isRead === 1 ? 'read' : 'unread'}}">
           {{detail.readText}}
         </view>
       </view>
@@ -35,6 +35,11 @@
       <view class="info-row">
         <view class="info-label">阅读时间</view>
         <view class="info-value">{{detail.readTimeText}}</view>
+      </view>
+
+      <view class="info-row">
+        <view class="info-label">消息类型</view>
+        <view class="info-value">{{detail.typeText}}</view>
       </view>
     </view>
 

@@ -1,90 +1,69 @@
 const request = require('../../utils/request');
 
-function unwrapPage(res) {
-  if (!res) {
-    return {
-      records: [],
-      total: 0,
-      pageNum: 1,
-      pageSize: 10
-    };
-  }
-
-  if (Array.isArray(res.records)) {
-    return {
-      records: res.records,
-      total: Number(res.total || 0),
-      pageNum: Number(res.current || res.pageNum || 1),
-      pageSize: Number(res.size || res.pageSize || 10)
-    };
-  }
-
-  if (res.data && Array.isArray(res.data.records)) {
-    return {
-      records: res.data.records,
-      total: Number(res.data.total || 0),
-      pageNum: Number(res.data.current || res.data.pageNum || 1),
-      pageSize: Number(res.data.size || res.data.pageSize || 10)
-    };
-  }
-
-  return {
-    records: [],
-    total: 0,
-    pageNum: 1,
-    pageSize: 10
-  };
-}
-
+// 挑战分页
 function challengePage(params) {
   return request.get('/api/challenge/page', params || {});
 }
 
+// 挑战详情
 function challengeDetail(id) {
   return request.get(`/api/challenge/detail/${id}`);
 }
 
+// 参加挑战
 function joinChallenge(id) {
   return request.post(`/api/challenge/join/${id}`, {});
 }
 
+// 更新进度
 function updateProgress(payload) {
-  return request.post('/api/challenge/progress/set', payload);
+  return request.post('/api/challenge/progress/set', payload || {});
 }
 
+// 完成挑战
 function finishChallenge(id) {
   return request.post(`/api/challenge/finish/${id}`, {});
 }
 
-function progressTop(id, limit) {
-  return request.get('/api/challenge/rank/progress', {
-    id,
-    limit: limit || 10
+// 进度榜 topN
+function progressTop(challengeId, topN) {
+  return request.get('/api/challenge/leaderboard/progress/top', {
+    challengeId,
+    topN: topN || 10
   });
 }
 
-function finishTop(id, limit) {
-  return request.get('/api/challenge/rank/finish', {
-    id,
-    limit: limit || 10
+// 完成榜 topN
+function finishTop(challengeId, topN) {
+  return request.get('/api/challenge/leaderboard/finish/top', {
+    challengeId,
+    topN: topN || 10
   });
 }
 
-function myProgressRank(id) {
-  return request.get('/api/challenge/rank/myProgress', { id });
+// 我的进度排名
+function myProgressRank(challengeId) {
+  return request.get('/api/challenge/leaderboard/progress/me', {
+    challengeId
+  });
 }
 
-function myFinishRank(id) {
-  return request.get('/api/challenge/rank/myFinish', { id });
+// 我的完成排名
+function myFinishRank(challengeId) {
+  return request.get('/api/challenge/leaderboard/finish/me', {
+    challengeId
+  });
 }
 
 /**
- * 后端 /api/challenge/my 返回的是 List<ChallengeJoin>
- * 这里统一包装成分页结构，方便前端继续复用
+ * 我的挑战列表
+ * 后端这里返回的是 List<ChallengeJoin>
+ * 这里统一包装一下，前端页面就不用改太多
  */
 async function myChallenges(params) {
   const res = await request.get('/api/challenge/my', params || {});
-  const list = Array.isArray(res) ? res : (Array.isArray(res.data) ? res.data : []);
+  const list = Array.isArray(res) ? res : [];
+
   return {
     records: list,
     total: list.length,

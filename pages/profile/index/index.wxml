@@ -1,0 +1,91 @@
+<view class="page">
+  <view class="card">
+    <view class="title">账号资料</view>
+    <view class="desc">这里可以维护你的基础资料，后面推荐和健康分析会用到这些信息</view>
+
+    <view class="form-item">
+      <view class="label">用户名</view>
+      <input class="input input-disabled" value="{{form.username}}" disabled />
+    </view>
+
+    <view class="form-item">
+      <view class="label">角色</view>
+      <input class="input input-disabled" value="{{form.role}}" disabled />
+    </view>
+
+    <view class="form-item">
+      <view class="label">昵称</view>
+      <input
+        class="input"
+        placeholder="请输入昵称"
+        value="{{form.nickname}}"
+        bindinput="onNicknameInput"
+      />
+    </view>
+
+    <view class="form-item">
+      <view class="label">手机号</view>
+      <input
+        class="input"
+        type="number"
+        maxlength="11"
+        placeholder="请输入手机号"
+        value="{{form.phone}}"
+        bindinput="onPhoneInput"
+      />
+    </view>
+
+    <view class="form-item">
+      <view class="label">年龄</view>
+      <input
+        class="input"
+        type="number"
+        maxlength="3"
+        placeholder="请输入年龄"
+        value="{{form.age}}"
+        bindinput="onAgeInput"
+      />
+    </view>
+
+    <view class="form-item">
+      <view class="label">性别</view>
+      <view class="gender-row">
+        <view
+          wx:for="{{genderOptions}}"
+          wx:key="item"
+          class="gender-btn {{form.gender === item ? 'gender-btn-active' : ''}}"
+          data-gender="{{item}}"
+          bindtap="onGenderTap"
+        >
+          {{item}}
+        </view>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <view class="label">身高(cm)</view>
+      <input
+        class="input"
+        type="digit"
+        placeholder="请输入身高，例如 175"
+        value="{{form.heightCm}}"
+        bindinput="onHeightInput"
+      />
+    </view>
+
+    <view class="form-item">
+      <view class="label">初始体重(kg)</view>
+      <input
+        class="input"
+        type="digit"
+        placeholder="请输入初始体重，例如 65"
+        value="{{form.initialWeightKg}}"
+        bindinput="onInitialWeightInput"
+      />
+    </view>
+
+    <button class="save-btn" loading="{{saving}}" disabled="{{saving}}" bindtap="onSave">
+      {{saving ? '保存中...' : '保存资料'}}
+    </button>
+  </view>
+</view>

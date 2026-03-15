@@ -1,61 +1,176 @@
-<view class="wrap">
-  <view class="card">
-    <view class="title">填写今日健康数据</view>
-    <view class="tip">保存后会同步支撑体质评估、风险分析和推荐模块</view>
+<view class="page">
+  <view class="hero-card">
+    <view class="hero-top">
+      <view class="hero-main">
+        <view class="hero-title">今日健康录入</view>
+        <view class="hero-desc">保存后将同步到体质评估、风险分析和推荐模块</view>
+      </view>
+      <view class="hero-badge">{{form.recordDate}}</view>
+    </view>
 
-    <view class="row">
-      <view class="label">日期</view>
+    <view class="hero-stats">
+      <view class="stat-item">
+        <view class="stat-label">完整度</view>
+        <view class="stat-value">{{completionText}}</view>
+      </view>
+      <view class="stat-item">
+        <view class="stat-label">BMI 预览</view>
+        <view class="stat-value">{{bmiText}}</view>
+      </view>
+      <view class="stat-item">
+        <view class="stat-label">状态</view>
+        <view class="stat-value">{{healthHint}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="section-card">
+    <view class="section-head">
+      <view class="section-title">基础指标</view>
+      <view class="section-tip">用于体重趋势、BMI 和评估计算</view>
+    </view>
+
+    <view class="field">
+      <view class="field-label">日期</view>
       <picker mode="date" value="{{form.recordDate}}" bindchange="onDateChange">
         <view class="picker">{{form.recordDate || '请选择日期'}}</view>
       </picker>
     </view>
 
-    <view class="row">
-      <view class="label">身高(cm)</view>
-      <input class="input" type="number" placeholder="例如 170" value="{{form.heightCm}}" data-k="heightCm" bindinput="onInput" />
+    <view class="field">
+      <view class="field-label">身高(cm)</view>
+      <input
+        class="input"
+        type="number"
+        placeholder="例如 170"
+        placeholder-class="input-placeholder"
+        value="{{form.heightCm}}"
+        data-k="heightCm"
+        bindinput="onInput"
+      />
     </view>
 
-    <view class="row">
-      <view class="label">体重(kg)</view>
-      <input class="input" type="digit" placeholder="例如 65" value="{{form.weightKg}}" data-k="weightKg" bindinput="onInput" />
+    <view class="field">
+      <view class="field-label">体重(kg)</view>
+      <input
+        class="input"
+        type="digit"
+        placeholder="例如 65"
+        placeholder-class="input-placeholder"
+        value="{{form.weightKg}}"
+        data-k="weightKg"
+        bindinput="onInput"
+      />
+    </view>
+  </view>
+
+  <view class="section-card">
+    <view class="section-head">
+      <view class="section-title">生命体征</view>
+      <view class="section-tip">建议尽量填写，便于风险分析更准确</view>
     </view>
 
-    <view class="row2">
-      <view class="row">
-        <view class="label">收缩压</view>
-        <input class="input" type="number" placeholder="例如 120" value="{{form.systolic}}" data-k="systolic" bindinput="onInput" />
+    <view class="grid-2">
+      <view class="field grid-item">
+        <view class="field-label">收缩压</view>
+        <input
+          class="input"
+          type="number"
+          placeholder="例如 120"
+          placeholder-class="input-placeholder"
+          value="{{form.systolic}}"
+          data-k="systolic"
+          bindinput="onInput"
+        />
       </view>
-      <view class="row">
-        <view class="label">舒张压</view>
-        <input class="input" type="number" placeholder="例如 80" value="{{form.diastolic}}" data-k="diastolic" bindinput="onInput" />
+
+      <view class="field grid-item">
+        <view class="field-label">舒张压</view>
+        <input
+          class="input"
+          type="number"
+          placeholder="例如 80"
+          placeholder-class="input-placeholder"
+          value="{{form.diastolic}}"
+          data-k="diastolic"
+          bindinput="onInput"
+        />
       </view>
     </view>
 
-    <view class="row2">
-      <view class="row">
-        <view class="label">心率(bpm)</view>
-        <input class="input" type="number" placeholder="例如 75" value="{{form.heartRate}}" data-k="heartRate" bindinput="onInput" />
+    <view class="grid-2">
+      <view class="field grid-item">
+        <view class="field-label">心率(bpm)</view>
+        <input
+          class="input"
+          type="number"
+          placeholder="例如 75"
+          placeholder-class="input-placeholder"
+          value="{{form.heartRate}}"
+          data-k="heartRate"
+          bindinput="onInput"
+        />
       </view>
-      <view class="row">
-        <view class="label">步数</view>
-        <input class="input" type="number" placeholder="例如 8000" value="{{form.steps}}" data-k="steps" bindinput="onInput" />
+
+      <view class="field grid-item">
+        <view class="field-label">步数</view>
+        <input
+          class="input"
+          type="number"
+          placeholder="例如 8000"
+          placeholder-class="input-placeholder"
+          value="{{form.steps}}"
+          data-k="steps"
+          bindinput="onInput"
+        />
       </view>
     </view>
+  </view>
 
-    <view class="row">
-      <view class="label">睡眠(h)</view>
-      <input class="input" type="digit" placeholder="例如 7.5" value="{{form.sleepHours}}" data-k="sleepHours" bindinput="onInput" />
+  <view class="section-card">
+    <view class="section-head">
+      <view class="section-title">生活方式</view>
+      <view class="section-tip">有助于睡眠和活动建议生成</view>
     </view>
 
-    <view class="row">
-      <view class="label">备注</view>
-      <input class="input" placeholder="可选" value="{{form.remark}}" data-k="remark" bindinput="onInput" />
+    <view class="field">
+      <view class="field-label">睡眠(h)</view>
+      <input
+        class="input"
+        type="digit"
+        placeholder="例如 7.5"
+        placeholder-class="input-placeholder"
+        value="{{form.sleepHours}}"
+        data-k="sleepHours"
+        bindinput="onInput"
+      />
     </view>
 
-    <button class="btn" loading="{{submitting}}" bindtap="onSubmit">
-      {{submitting ? '保存中...' : '保存并同步评估数据'}}
-    </button>
+    <view class="field">
+      <view class="field-label">备注</view>
+      <textarea
+        class="textarea"
+        placeholder="可选，例如：今天运动较多、睡眠一般、饮食偏油腻"
+        placeholder-class="textarea-placeholder"
+        value="{{form.remark}}"
+        data-k="remark"
+        bindinput="onInput"
+        maxlength="120"
+      />
+    </view>
+  </view>
 
-    <button class="btn2" bindtap="goLatest">查看最近记录</button>
+  <view class="action-wrap">
+    <view class="action-bar">
+      <view class="action-note">保存后将同步更新评估、风险和推荐结果</view>
+
+      <button class="primary-btn" loading="{{submitting}}" bindtap="onSubmit">
+        <text class="btn-text">{{submitting ? '保存中...' : '保存并同步分析'}}</text>
+      </button>
+
+      <button class="secondary-btn" bindtap="goLatest">
+        <text class="btn-text secondary-text">查看最近记录</text>
+      </button>
+    </view>
   </view>
 </view>

@@ -1,12 +1,60 @@
-<view class="container">
-  <view class="card">
-    <view class="title">SPHAS 健康助手</view>
+<view class="login-page">
+  <view class="bg bg-1"></view>
+  <view class="bg bg-2"></view>
 
-    <input class="input" placeholder="请输入账号" placeholder-class="ph" value="{{username}}" bindinput="onUsername" />
-   <input class="input" placeholder="请输入密码" placeholder-class="ph" password value="{{password}}" bindinput="onPassword" />
+  <view class="login-wrapper">
+    <view class="brand-box">
+      <view class="brand-badge">S</view>
+      <view class="brand-text">
+        <view class="brand-title">SPHAS 健康助手</view>
+        <view class="brand-subtitle">关注每日健康，记录更好的自己</view>
+      </view>
+    </view>
 
-    <button class="btn" bindtap="onLogin">登录</button>
+    <view class="login-card">
+      <view class="card-title">欢迎登录</view>
+      <view class="card-desc">登录后即可查看健康记录、推荐内容与个人数据</view>
 
-    <view class="link" bindtap="goRegister">没有账号？去注册</view>
+      <view class="form-item">
+        <view class="label">账号</view>
+        <view class="input-wrap">
+          <input
+            class="input"
+            placeholder="请输入账号"
+            placeholder-class="ph"
+            value="{{username}}"
+            bindinput="onUsername"
+          />
+        </view>
+      </view>
+
+      <view class="form-item">
+        <view class="label">密码</view>
+        <view class="input-wrap">
+          <input
+            class="input"
+            placeholder="请输入密码"
+            placeholder-class="ph"
+            password
+            value="{{password}}"
+            bindinput="onPassword"
+          />
+        </view>
+      </view>
+
+      <button
+        class="login-btn"
+        loading="{{loading}}"
+        disabled="{{loading}}"
+        bindtap="onLogin"
+      >
+        <text class="btn-text">{{loading ? '登录中...' : '登录'}}</text>
+      </button>
+
+      <view class="bottom-row">
+        <text class="bottom-text">还没有账号？</text>
+        <text class="register-link" bindtap="goRegister">立即注册</text>
+      </view>
+    </view>
   </view>
 </view>

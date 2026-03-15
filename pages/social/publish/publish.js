@@ -1,10 +1,11 @@
-const api = require('../../api/social');
+const socialApi = require('../../api/social');
 
 Page({
   data: {
     content: '',
     images: [],
-    submitting: false
+    submitting: false,
+    maxCount: 6
   },
 
   onInput(e) {
@@ -14,10 +15,10 @@ Page({
   },
 
   chooseImgs() {
-    const remain = 6 - this.data.images.length;
+    const remain = this.data.maxCount - this.data.images.length;
     if (remain <= 0) {
       wx.showToast({
-        title: '最多 6 张',
+        title: `最多 ${this.data.maxCount} 张`,
         icon: 'none'
       });
       return;
@@ -28,9 +29,11 @@ Page({
       sizeType: ['compressed'],
       sourceType: ['album', 'camera'],
       success: (res) => {
-        const list = res.tempFilePaths || [];
+        const list = (res.tempFilePaths || []).filter(Boolean);
+        if (!list.length) return;
+
         this.setData({
-          images: this.data.images.concat(list)
+          images: this.data.images.concat(list).slice(0, this.data.maxCount)
         });
       }
     });
@@ -38,6 +41,8 @@ Page({
 
   removeImg(e) {
     const idx = Number(e.currentTarget.dataset.idx);
+    if (Number.isNaN(idx)) return;
+
     const next = this.data.images.slice();
     next.splice(idx, 1);
     this.setData({
@@ -56,7 +61,7 @@ Page({
   },
 
   async submit() {
-    const content = (this.data.content || '').trim();
+    const content = String(this.data.content || '').trim();
     if (!content) {
       wx.showToast({
         title: '内容不能为空',
@@ -71,19 +76,24 @@ Page({
       submitting: true
     });
 
+    wx.showLoading({
+      title: '发布中'
+    });
+
     try {
       const urls = [];
 
       for (const path of this.data.images) {
-        const url = await api.uploadImage(path);
+        const url = await socialApi.uploadSocialImage(path);
         urls.push(url);
       }
 
-      await api.createPost({
+      await socialApi.createPost({
         content,
         imagesJson: JSON.stringify(urls)
       });
 
+      wx.hideLoading();
       wx.showToast({
         title: '已提交审核',
         icon: 'success'
@@ -93,8 +103,10 @@ Page({
         wx.redirectTo({
           url: '/pages/social/mine/mine'
         });
-      }, 300);
+      }, 350);
     } catch (e) {
+      wx.hideLoading();
+      console.error('[social publish] submit fail =', e);
       wx.showToast({
         title: e.msg || e.message || '发布失败',
         icon: 'none'

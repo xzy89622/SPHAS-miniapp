@@ -54,22 +54,52 @@
   color: rgba(255, 255, 255, 0.76);
 }
 
-.action-row {
+.toolbar {
   margin-top: 20rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16rpx;
+  flex-wrap: wrap;
+}
+
+.filter-row {
+  display: flex;
+  gap: 12rpx;
+}
+
+.filter-chip {
+  min-width: 108rpx;
+  height: 68rpx;
+  padding: 0 24rpx;
+  border-radius: 999rpx;
+  background: #ffffff;
+  color: #64748b;
+  font-size: 24rpx;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 20rpx rgba(15, 23, 42, 0.06);
+}
+
+.filter-chip-active {
+  background: #111827;
+  color: #ffffff;
 }
 
 .action-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 74rpx;
-  padding: 0 28rpx;
+  height: 68rpx;
+  padding: 0 24rpx;
   border-radius: 999rpx;
-  background: #111827;
+  background: #2563eb;
   color: #ffffff;
   font-size: 24rpx;
   font-weight: 700;
-  box-shadow: 0 8rpx 20rpx rgba(15, 23, 42, 0.12);
+  box-shadow: 0 8rpx 20rpx rgba(37, 99, 235, 0.16);
 }
 
 .state-card {
@@ -99,6 +129,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 16rpx;
 }
 
 .type-box {
@@ -126,6 +157,16 @@
 .type-box.notice {
   background: #f5f3ff;
   color: #7c3aed;
+}
+
+.type-box.plan {
+  background: #ecfeff;
+  color: #0891b2;
+}
+
+.type-box.badge {
+  background: #fff7ed;
+  color: #d97706;
 }
 
 .type-icon {
@@ -174,6 +215,10 @@
   color: #475569;
   line-height: 1.8;
   word-break: break-all;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .msg-bottom {

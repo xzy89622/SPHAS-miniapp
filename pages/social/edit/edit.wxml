@@ -1,40 +1,57 @@
 <view class="page">
   <view class="card">
-    <view class="title">修改后重新发布</view>
-    <view class="sub">修改已驳回日志，提交后会重新进入审核流程</view>
+    <view class="title">编辑日志</view>
+    <view class="desc">只有已驳回的帖子才允许修改，保存后会重新进入审核</view>
 
-    <textarea
-      class="ta"
-      placeholder="请输入日志内容"
-      value="{{content}}"
-      bindinput="onInput"
-      maxlength="500"
-      auto-height="true"
-    />
-    <view class="count">{{content.length}} / 500</view>
-  </view>
-
-  <view class="card">
-    <view class="row">
-      <view class="label">图片</view>
-      <view class="choose-btn" bindtap="chooseImgs">添加图片</view>
-    </view>
-
-    <view class="imgs">
-      <view wx:for="{{images}}" wx:key="index" class="img-wrap">
-        <image
-          class="img"
-          src="{{item}}"
-          mode="aspectFill"
-          data-src="{{item}}"
-          bindtap="preview"
-        />
-        <view class="del" data-idx="{{index}}" bindtap="removeImg">×</view>
+    <view wx:if="{{detail}}" class="status-box">
+      <view class="status-line">
+        <text class="status-label">当前状态：</text>
+        <text class="status-value">{{detail.statusText}}</text>
       </view>
     </view>
-  </view>
 
-  <button type="primary" bindtap="submit" disabled="{{submitting}}">
-    {{submitting ? '提交中...' : '保存并重新发布'}}
-  </button>
+    <view wx:if="{{!canEdit}}" class="status-box">
+      当前帖子不是驳回状态，暂时不能编辑。
+    </view>
+
+    <view class="form-item">
+      <view class="label">日志内容</view>
+      <textarea
+        class="textarea"
+        maxlength="500"
+        placeholder="分享今天的健康打卡、饮食或运动情况"
+        value="{{content}}"
+        bindinput="onContentInput"
+        disabled="{{!canEdit}}"
+      />
+    </view>
+
+    <view class="form-item">
+      <view class="label">配图</view>
+
+      <view class="image-grid">
+        <block wx:for="{{imageList}}" wx:key="index">
+          <view class="img-item">
+            <image
+              class="img"
+              src="{{item}}"
+              mode="aspectFill"
+              bindtap="previewImage"
+              data-url="{{item}}"
+            />
+            <view wx:if="{{canEdit}}" class="remove-btn" bindtap="removeImage" data-index="{{index}}">×</view>
+          </view>
+        </block>
+
+        <view wx:if="{{canEdit && imageList.length < maxImageCount}}" class="add-box" bindtap="chooseImages">
+          <view class="add-icon">+</view>
+          <view class="add-text">添加图片</view>
+        </view>
+      </view>
+    </view>
+
+    <button class="submit-btn" loading="{{saving}}" disabled="{{saving || !canEdit}}" bindtap="onSubmit">
+      {{saving ? '提交中...' : '保存并重新提交'}}
+    </button>
+  </view>
 </view>

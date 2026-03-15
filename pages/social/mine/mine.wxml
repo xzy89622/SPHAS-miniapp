@@ -1,72 +1,87 @@
 <view class="page">
-  <view class="hero">
-    <view class="hero-title">我的日志</view>
-    <view class="hero-sub">查看审核进度、驳回结果与隐藏状态</view>
-
-    <view class="hero-stats">
-      <view class="hero-stat">
-        <view class="hero-num">{{status==='2' ? list.length : '—'}}</view>
-        <view class="hero-label">当前筛选</view>
-      </view>
-      <view class="hero-stat">
-        <view class="hero-num">{{list.length}}</view>
-        <view class="hero-label">日志数量</view>
-      </view>
+  <view class="hero-card">
+    <view class="hero-left">
+      <view class="hero-title">我的帖子</view>
+      <view class="hero-sub">管理我发布的健康日志、查看审核状态和互动数据</view>
     </view>
+
+    <button class="publish-btn" bindtap="goPublish">
+      发新帖子
+    </button>
   </view>
 
-  <view class="message-entry" bindtap="goMessage">
-    去消息中心查看审核通知
-  </view>
-
-  <view class="tabs">
-    <view class="tab {{status==='' ? 'tab-on' : ''}}" data-status="" bindtap="setStatus">全部</view>
-    <view class="tab {{status==='2' ? 'tab-on wait' : ''}}" data-status="2" bindtap="setStatus">审核中</view>
-    <view class="tab {{status==='1' ? 'tab-on ok' : ''}}" data-status="1" bindtap="setStatus">已发布</view>
-    <view class="tab {{status==='3' ? 'tab-on reject' : ''}}" data-status="3" bindtap="setStatus">已驳回</view>
-    <view class="tab {{status==='0' ? 'tab-on hide' : ''}}" data-status="0" bindtap="setStatus">已隐藏</view>
+  <view class="stats-row">
+    <view class="stats-card">
+      <view class="stats-num">{{stats.total}}</view>
+      <view class="stats-label">总数</view>
+    </view>
+    <view class="stats-card">
+      <view class="stats-num">{{stats.pending}}</view>
+      <view class="stats-label">待审核</view>
+    </view>
+    <view class="stats-card">
+      <view class="stats-num">{{stats.passed}}</view>
+      <view class="stats-label">已发布</view>
+    </view>
+    <view class="stats-card">
+      <view class="stats-num">{{stats.rejected}}</view>
+      <view class="stats-label">已驳回</view>
+    </view>
   </view>
 
   <view wx:if="{{loading && list.length === 0}}" class="state-card">加载中...</view>
   <view wx:if="{{errMsg}}" class="state-card err">{{errMsg}}</view>
-  <view wx:if="{{!loading && list.length === 0 && !errMsg}}" class="state-card">暂无日志</view>
+  <view wx:if="{{!loading && list.length === 0 && !errMsg}}" class="state-card">你还没有发布过帖子</view>
 
   <block wx:for="{{list}}" wx:key="id">
-    <view class="post-card" bindtap="goDetail" data-id="{{item.id}}">
-      <view class="card-top">
-        <view class="status-tag {{item.statusClass}}">{{item.statusText}}</view>
-        <view class="time">{{item.timeText}}</view>
+    <view class="post-card">
+      <view class="post-top">
+        <view class="status-tag {{item.statusClass}}">
+          {{item.statusText}}
+        </view>
+
+        <view class="time-text">{{item.createTimeText}}</view>
       </view>
 
-      <view class="content">{{item.content || '暂无内容'}}</view>
+      <view class="post-content" bindtap="goDetail" data-id="{{item.id}}">
+        {{item.contentText}}
+      </view>
+
+      <view wx:if="{{item.firstImage}}" class="cover-box" bindtap="goDetail" data-id="{{item.id}}">
+        <image class="cover-img" src="{{item.firstImage}}" mode="aspectFill"></image>
+        <view wx:if="{{item.imageCount > 1}}" class="img-count">共 {{item.imageCount}} 张</view>
+      </view>
 
       <view class="meta-row">
-        <view class="meta-item">👍 {{item.likeCount || 0}}</view>
-        <view class="meta-item">💬 {{item.commentCount || 0}}</view>
-        <view class="meta-item">{{item.hasImages ? '🖼 含图片' : '📄 无图片'}}</view>
+        <view class="meta-item">👍 {{item.likeCountText}}</view>
+        <view class="meta-item">💬 {{item.commentCountText}}</view>
       </view>
 
-      <view wx:if="{{item.status===2}}" class="tip wait-tip">
-        正在等待管理员审核，审核通过后会展示到社区。
-      </view>
+      <view class="action-row">
+        <button class="ghost-btn" bindtap="goDetail" data-id="{{item.id}}">
+          查看
+        </button>
 
-      <view wx:if="{{item.status===3}}" class="tip reject-tip">
-        帖子已被驳回，点进去后可查看状态并修改后重新发布。
-      </view>
+        <button
+          wx:if="{{item.canEdit}}"
+          class="ghost-btn"
+          bindtap="goEdit"
+          data-id="{{item.id}}"
+          data-can-edit="{{item.canEdit}}"
+        >
+          重新编辑
+        </button>
 
-      <view wx:if="{{item.status===0}}" class="tip hide-tip">
-        帖子当前已被隐藏，可到消息中心查看通知原因。
+        <button class="danger-btn" bindtap="onDelete" data-id="{{item.id}}">
+          删除
+        </button>
       </view>
-
-      <view wx:if="{{item.status===1}}" class="tip ok-tip">
-        帖子已通过审核，社区用户可见。
-      </view>
-
-      <view class="card-link">查看详情</view>
     </view>
   </block>
 
-  <view wx:if="{{hasMore && list.length > 0 && !loading}}" class="more" bindtap="loadMore">加载更多</view>
+  <view wx:if="{{hasMore && list.length > 0 && !loading}}" class="more" bindtap="loadMore">
+    加载更多
+  </view>
   <view wx:if="{{loading && list.length > 0}}" class="more">加载中...</view>
   <view wx:if="{{!hasMore && list.length > 0}}" class="more">没有更多了</view>
 </view>

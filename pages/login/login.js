@@ -1,4 +1,3 @@
-// pages/login/login.js
 const auth = require('../../utils/auth');
 
 Page({
@@ -21,6 +20,7 @@ Page({
   },
 
   goRegister() {
+    if (this.data.loading) return;
     wx.navigateTo({ url: '/pages/register/register' });
   },
 
@@ -30,15 +30,19 @@ Page({
     const username = (this.data.username || '').trim();
     const password = (this.data.password || '').trim();
 
-    if (!username || !password) {
-      wx.showToast({ title: '请输入账号密码', icon: 'none' });
+    if (!username) {
+      wx.showToast({ title: '请输入账号', icon: 'none' });
+      return;
+    }
+
+    if (!password) {
+      wx.showToast({ title: '请输入密码', icon: 'none' });
       return;
     }
 
     this.setData({ loading: true });
 
     try {
-      // 1）登录拿 token
       const token = await auth.login(username, password);
 
       if (!token) {
@@ -47,18 +51,13 @@ Page({
       }
 
       auth.setToken(token);
-
-      // 2）再拉一次当前用户资料，存 userId / userInfo
-      const profile = await auth.syncProfile();
-
-      console.log('[login] token =', token);
-      console.log('[login] profile =', profile);
+      await auth.syncProfile();
 
       wx.showToast({ title: '登录成功', icon: 'success' });
 
       setTimeout(() => {
         wx.reLaunch({ url: '/pages/index/index' });
-      }, 200);
+      }, 300);
     } catch (e) {
       console.error('login error =>', e);
 
@@ -68,7 +67,10 @@ Page({
         (e && e.message) ||
         '登录失败';
 
-      wx.showToast({ title: msg, icon: 'none' });
+      wx.showToast({
+        title: msg,
+        icon: 'none'
+      });
     } finally {
       this.setData({ loading: false });
     }

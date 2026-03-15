@@ -11,19 +11,29 @@ function formatTime(timeStr) {
 function getTypeText(type) {
   const map = {
     AUDIT: '审核通知',
+    RISK: '风险预警',
+    INACTIVE: '未登录提醒',
+    CHALLENGE: '挑战通知',
+    PLAN: '计划提醒',
     SYSTEM: '系统消息',
-    ALERT: '风险提醒',
-    NOTICE: '公告通知'
+    NOTICE: '公告通知',
+    BADGE: '勋章提醒',
+    ADVICE: '健康建议'
   };
-  return map[type] || type || '消息';
+  return map[type] || '消息通知';
 }
 
 function getTypeIcon(type) {
   const map = {
     AUDIT: '🛡️',
+    RISK: '⚠️',
+    INACTIVE: '⏰',
+    CHALLENGE: '🏆',
+    PLAN: '📋',
     SYSTEM: '📢',
-    ALERT: '⚠️',
-    NOTICE: '📌'
+    NOTICE: '📌',
+    BADGE: '🎖️',
+    ADVICE: '🩺'
   };
   return map[type] || '🔔';
 }
@@ -31,9 +41,14 @@ function getTypeIcon(type) {
 function getTypeClass(type) {
   const map = {
     AUDIT: 'audit',
+    RISK: 'alert',
+    INACTIVE: 'notice',
+    CHALLENGE: 'system',
+    PLAN: 'plan',
     SYSTEM: 'system',
-    ALERT: 'alert',
-    NOTICE: 'notice'
+    NOTICE: 'notice',
+    BADGE: 'badge',
+    ADVICE: 'advice'
   };
   return map[type] || 'system';
 }
@@ -46,7 +61,8 @@ Page({
     pageSize: 10,
     hasMore: true,
     list: [],
-    unreadCount: 0
+    unreadCount: 0,
+    currentFilter: 'all'
   },
 
   onLoad() {
@@ -67,16 +83,23 @@ Page({
 
   normalizeList(list) {
     if (!Array.isArray(list)) return [];
-    return list.map(item => ({
-      ...item,
-      typeText: getTypeText(item.type),
-      typeIcon: getTypeIcon(item.type),
-      typeClass: getTypeClass(item.type),
-      timeText: formatTime(item.createTime),
-      readText: item.readFlag ? '已读' : '未读',
-      titleText: item.title || '消息通知',
-      contentText: item.content || '暂无内容'
-    }));
+    return list.map(item => {
+      const isRead = Number(item.isRead || 0) === 1;
+      const titleText = item.title || '消息通知';
+      const contentText = item.content || '暂无内容';
+
+      return {
+        ...item,
+        isRead: isRead ? 1 : 0,
+        typeText: getTypeText(item.type),
+        typeIcon: getTypeIcon(item.type),
+        typeClass: getTypeClass(item.type),
+        timeText: formatTime(item.createTime),
+        readText: isRead ? '已读' : '未读',
+        titleText,
+        contentText
+      };
+    });
   },
 
   async loadAll() {
@@ -89,8 +112,17 @@ Page({
     });
 
     try {
+      const params = {
+        pageNum: 1,
+        pageSize: this.data.pageSize
+      };
+
+      if (this.data.currentFilter === 'unread') {
+        params.isRead = 0;
+      }
+
       const [pageRes, unreadCount] = await Promise.all([
-        api.pageMessages({ pageNum: 1, pageSize: this.data.pageSize }),
+        api.pageMessages(params),
         api.unreadCount().catch(() => 0)
       ]);
 
@@ -100,6 +132,7 @@ Page({
       this.setData({
         list: records,
         unreadCount: Number(unreadCount || 0),
+        pageNum: 1,
         hasMore: total > records.length
       });
     } catch (e) {
@@ -119,29 +152,45 @@ Page({
     this.setData({ loading: true });
 
     try {
-      const res = await api.pageMessages({
+      const params = {
         pageNum: nextPage,
         pageSize: this.data.pageSize
-      });
+      };
 
-      const records = this.normalizeList(res.records || []);
-      const all = this.data.list.concat(records);
-      const total = Number(res.total || 0);
+      if (this.data.currentFilter === 'unread') {
+        params.isRead = 0;
+      }
+
+      const pageRes = await api.pageMessages(params);
+      const records = this.normalizeList(pageRes.records || []);
+      const total = Number(pageRes.total || 0);
+      const newList = this.data.list.concat(records);
 
       this.setData({
-        list: all,
+        list: newList,
         pageNum: nextPage,
-        hasMore: total > all.length
+        hasMore: total > newList.length
       });
     } catch (e) {
       console.log('[message list] loadMore fail', e);
-      wx.showToast({
-        title: e.msg || e.message || '加载更多失败',
-        icon: 'none'
+      this.setData({
+        errMsg: e.msg || e.message || '加载更多失败'
       });
     } finally {
       this.setData({ loading: false });
     }
+  },
+
+  onFilterAll() {
+    if (this.data.currentFilter === 'all') return;
+    this.setData({ currentFilter: 'all' });
+    this.loadAll();
+  },
+
+  onFilterUnread() {
+    if (this.data.currentFilter === 'unread') return;
+    this.setData({ currentFilter: 'unread' });
+    this.loadAll();
   },
 
   async readAll() {
@@ -153,6 +202,7 @@ Page({
       });
       this.loadAll();
     } catch (e) {
+      console.log('[message list] readAll fail', e);
       wx.showToast({
         title: e.msg || e.message || '操作失败',
         icon: 'none'
@@ -161,9 +211,8 @@ Page({
   },
 
   goDetail(e) {
-    const id = e.currentTarget.dataset.id;
+    const id = Number(e.currentTarget.dataset.id || 0);
     if (!id) return;
-
     wx.navigateTo({
       url: `/pages/message/detail/detail?id=${id}`
     });

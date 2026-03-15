@@ -1,4 +1,4 @@
-const socialApi = require('../../api/social.js');
+const socialApi = require('../../api/social');
 
 function formatTime(timeStr) {
   if (!timeStr) return '';
@@ -11,10 +11,6 @@ function formatTime(timeStr) {
 function getAvatarText(name) {
   const text = String(name || '用').trim();
   return text ? text.charAt(0) : '用';
-}
-
-function safeArray(list) {
-  return Array.isArray(list) ? list.filter(Boolean) : [];
 }
 
 Page({
@@ -31,6 +27,11 @@ Page({
     const app = getApp();
     if (!app || typeof app.requireLogin !== 'function') return;
     if (!app.requireLogin()) return;
+    this.reload();
+  },
+
+  onShow() {
+    if (!this.data.posts.length) return;
     this.reload();
   },
 
@@ -64,26 +65,17 @@ Page({
   },
 
   normalizePost(item) {
-    const row = item || {};
-    const images = safeArray(socialApi.parseImagesJson(row.imagesJson));
-    const nickname =
-      row.nickname ||
-      row.nickName ||
-      row.username ||
-      row.userName ||
-      `用户${row.userId || ''}`;
-    const content =
-      row.content ||
-      row.postContent ||
-      row.text ||
-      '暂无内容';
+    const row = socialApi.normalizePost ? socialApi.normalizePost(item) : (item || {});
+    const nickname = row.nickname || row.nickName || row.username || row.userName || `用户${row.userId || ''}`;
+    const content = row.content || row.postContent || row.text || '暂无内容';
+    const images = Array.isArray(row.images) ? row.images : [];
 
     return {
       ...row,
       nicknameText: nickname,
       avatarText: getAvatarText(nickname),
       contentText: content,
-      timeText: formatTime(row.createTime),
+      timeText: formatTime(row.createTime || row.createdAt || row.gmtCreate || ''),
       imageList: images,
       hasImages: images.length > 0,
       likeText: String(row.likeCount || 0),
@@ -103,13 +95,11 @@ Page({
       const records = Array.isArray(res.records) ? res.records : [];
       const newList = records.map(item => this.normalizePost(item));
       const posts = reset ? newList : this.data.posts.concat(newList);
-
       const total = Number(res.total || 0);
-      const hasMore = posts.length < total;
 
       this.setData({
         posts,
-        hasMore,
+        hasMore: posts.length < total,
         errMsg: ''
       });
     } catch (e) {
@@ -135,8 +125,9 @@ Page({
   },
 
   goDetail(e) {
-    const id = e.currentTarget.dataset.id;
+    const id = Number(e.currentTarget.dataset.id || 0);
     if (!id) return;
+
     wx.navigateTo({
       url: `/pages/social/detail/detail?id=${id}`
     });
@@ -144,8 +135,8 @@ Page({
 
   previewImg(e) {
     const src = e.currentTarget.dataset.src;
-    const urls = safeArray(e.currentTarget.dataset.urls);
-    if (!src || urls.length === 0) return;
+    const urls = e.currentTarget.dataset.urls || [];
+    if (!src || !urls.length) return;
 
     wx.previewImage({
       current: src,

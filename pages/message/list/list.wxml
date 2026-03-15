@@ -2,7 +2,7 @@
   <view class="hero">
     <view class="hero-left">
       <view class="hero-title">消息中心</view>
-      <view class="hero-sub">查看审核通知、风险提醒和系统消息</view>
+      <view class="hero-sub">查看风险预警、审核通知、勋章提醒和系统消息</view>
     </view>
 
     <view class="hero-right">
@@ -11,7 +11,23 @@
     </view>
   </view>
 
-  <view class="action-row">
+  <view class="toolbar">
+    <view class="filter-row">
+      <view
+        class="filter-chip {{currentFilter === 'all' ? 'filter-chip-active' : ''}}"
+        bindtap="onFilterAll"
+      >
+        全部
+      </view>
+
+      <view
+        class="filter-chip {{currentFilter === 'unread' ? 'filter-chip-active' : ''}}"
+        bindtap="onFilterUnread"
+      >
+        未读
+      </view>
+    </view>
+
     <view class="action-btn" bindtap="readAll">全部设为已读</view>
   </view>
 
@@ -27,7 +43,7 @@
           <view class="type-text">{{item.typeText}}</view>
         </view>
 
-        <view class="read-tag {{item.readFlag ? 'read' : 'unread'}}">
+        <view class="read-tag {{item.isRead === 1 ? 'read' : 'unread'}}">
           {{item.readText}}
         </view>
       </view>

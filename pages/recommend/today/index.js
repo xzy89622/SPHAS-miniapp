@@ -1,134 +1,201 @@
-const request = require('../../../utils/request');
-
-function buildItemsFromObj(obj) {
-  const items = [];
-
-  if (obj && obj.diet) {
-    items.push({
-      id: 'diet',
-      title: '饮食方案',
-      content: obj.diet.title || obj.diet.name || obj.diet.description || obj.diet.content || JSON.stringify(obj.diet)
-    });
-  }
-
-  if (obj && obj.sport) {
-    items.push({
-      id: 'sport',
-      title: '运动方案',
-      content: obj.sport.title || obj.sport.name || obj.sport.description || obj.sport.content || JSON.stringify(obj.sport)
-    });
-  }
-
-  if (obj && obj.reason) {
-    items.push({
-      id: 'reason',
-      title: '推荐理由',
-      content: obj.reason
-    });
-  }
-
-  if (obj && obj.bmiLevel) {
-    items.push({
-      id: 'bmiLevel',
-      title: 'BMI 等级',
-      content: String(obj.bmiLevel)
-    });
-  }
-
-  if (items.length === 0 && obj) {
-    items.push({
-      id: 'raw',
-      title: '推荐内容',
-      content: JSON.stringify(obj)
-    });
-  }
-
-  return items;
-}
+const recommendApi = require('../../api/recommend');
 
 Page({
   data: {
-    loading: true,
-    items: [],
-    errMsg: ''
+    loading: false,
+    saving: false,
+    adopting: false,
+
+    recommend: null,
+    currentPlan: null,
+
+    checkin: {
+      dietDone: 0,
+      sportDone: 0,
+      remark: ''
+    }
   },
 
   onLoad() {
-    const app = getApp();
-    if (!app || typeof app.requireLogin !== 'function') return;
-    if (!app.requireLogin()) return;
-
-    this.loadToday();
+    this.reloadAll();
   },
 
-  onShow() {
-    const app = getApp();
-    if (!app || typeof app.requireLogin !== 'function') return;
-    if (!app.requireLogin()) return;
+  onPullDownRefresh() {
+    this.reloadAll().finally(() => {
+      wx.stopPullDownRefresh();
+    });
   },
 
-  async loadToday() {
+  async reloadAll() {
     this.setData({
-      loading: true,
-      errMsg: '',
-      items: []
+      loading: true
     });
 
     try {
-      const res = await request.get('/api/recommend/today');
-      console.log('[recommend] today res =', res);
-
-      if (Array.isArray(res)) {
-        this.setData({
-          items: res,
-          loading: false
-        });
-        return;
-      }
-
-      if (res && typeof res === 'object') {
-        let list = res.list || res.items || res.records || null;
-
-        if (!Array.isArray(list) && res.data) {
-          list = res.data.list || res.data.items || res.data.records || null;
-        }
-
-        if (Array.isArray(list)) {
-          this.setData({
-            items: list,
-            loading: false
-          });
-          return;
-        }
-
-        const dataObj = res.data && typeof res.data === 'object' ? res.data : res;
-        const items = buildItemsFromObj(dataObj);
-
-        this.setData({
-          items,
-          loading: false
-        });
-        return;
-      }
+      const [recommendRes, currentPlanRes, todayCheckinRes] = await Promise.all([
+        recommendApi.getTodayRecommend().catch(() => null),
+        recommendApi.getCurrentPlan().catch(() => ({})),
+        recommendApi.getTodayCheckin().catch(() => ({}))
+      ]);
 
       this.setData({
-        items: [],
-        loading: false
+        recommend: this.normalizeRecommend(recommendRes),
+        currentPlan: this.normalizePlan(currentPlanRes),
+        checkin: {
+          dietDone: todayCheckinRes && todayCheckinRes.dietDone ? 1 : 0,
+          sportDone: todayCheckinRes && todayCheckinRes.sportDone ? 1 : 0,
+          remark: (todayCheckinRes && todayCheckinRes.remark) || ''
+        }
       });
     } catch (e) {
-      const msg = (e && e.msg) ? e.msg : ((e && e.message) ? e.message : '加载失败');
-      console.log('[recommend] load fail', e);
+      console.error('[recommend] reload fail =', e);
+      wx.showToast({
+        title: e.msg || e.message || '加载失败',
+        icon: 'none'
+      });
+    } finally {
       this.setData({
-        loading: false,
-        items: [],
-        errMsg: msg
+        loading: false
       });
     }
   },
 
-  onPullDownRefresh() {
-    this.loadToday().finally(() => {
-      wx.stopPullDownRefresh();
+  normalizeRecommend(raw) {
+    if (!raw) return null;
+
+    return {
+      bmi: raw.bmi == null ? '--' : raw.bmi,
+      bmiLevel: raw.bmiLevel || '未知',
+      scores: raw.scores || {},
+      reason: raw.reason || '',
+      diet: raw.diet || null,
+      sport: raw.sport || null
+    };
+  },
+
+  normalizePlan(raw) {
+    if (!raw || !raw.id) return null;
+
+    return {
+      id: raw.id,
+      startDate: raw.startDate || '',
+      endDate: raw.endDate || '',
+      status: raw.status || '',
+      diet: raw.diet || null,
+      sport: raw.sport || null
+    };
+  },
+
+  async onRefreshRecommend() {
+    if (this.data.loading) return;
+
+    wx.showLoading({
+      title: '生成中'
     });
+
+    try {
+      await recommendApi.refreshTodayRecommend({});
+      await this.reloadAll();
+
+      wx.showToast({
+        title: '已刷新推荐',
+        icon: 'success'
+      });
+    } catch (e) {
+      console.error('[recommend] refresh fail =', e);
+      wx.showToast({
+        title: e.msg || e.message || '刷新失败',
+        icon: 'none'
+      });
+    } finally {
+      wx.hideLoading();
+    }
+  },
+
+  async onAdoptPlan() {
+    if (this.data.adopting) return;
+
+    this.setData({
+      adopting: true
+    });
+
+    try {
+      await recommendApi.adoptTodayPlan();
+      await this.reloadAll();
+
+      wx.showToast({
+        title: '已采纳方案',
+        icon: 'success'
+      });
+    } catch (e) {
+      console.error('[recommend] adopt fail =', e);
+      wx.showToast({
+        title: e.msg || e.message || '采纳失败',
+        icon: 'none'
+      });
+    } finally {
+      this.setData({
+        adopting: false
+      });
+    }
+  },
+
+  onToggleDietDone() {
+    this.setData({
+      'checkin.dietDone': this.data.checkin.dietDone ? 0 : 1
+    });
+  },
+
+  onToggleSportDone() {
+    this.setData({
+      'checkin.sportDone': this.data.checkin.sportDone ? 0 : 1
+    });
+  },
+
+  onRemarkInput(e) {
+    this.setData({
+      'checkin.remark': e.detail.value
+    });
+  },
+
+  async onSaveCheckin() {
+    if (this.data.saving) return;
+
+    if (!this.data.currentPlan || !this.data.currentPlan.id) {
+      wx.showToast({
+        title: '请先采纳今日方案',
+        icon: 'none'
+      });
+      return;
+    }
+
+    this.setData({
+      saving: true
+    });
+
+    try {
+      await recommendApi.saveTodayCheckin({
+        dietDone: this.data.checkin.dietDone ? 1 : 0,
+        sportDone: this.data.checkin.sportDone ? 1 : 0,
+        remark: (this.data.checkin.remark || '').trim()
+      });
+
+      wx.showToast({
+        title: '打卡成功',
+        icon: 'success'
+      });
+
+      await this.reloadAll();
+    } catch (e) {
+      console.error('[recommend] save checkin fail =', e);
+      wx.showToast({
+        title: e.msg || e.message || '打卡失败',
+        icon: 'none'
+      });
+    } finally {
+      this.setData({
+        saving: false
+      });
+    }
   }
 });

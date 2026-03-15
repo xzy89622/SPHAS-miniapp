@@ -1,0 +1,87 @@
+<view class="page">
+  <view class="hero-card">
+    <view class="hero-title">健康总结报告</view>
+    <view class="hero-desc">系统会根据你最近的健康记录自动生成周报和月报</view>
+
+    <view class="tab-row">
+      <view
+        class="tab-item {{activeTab === 'weekly' ? 'tab-item-active' : ''}}"
+        bindtap="switchWeekly"
+      >
+        周报
+      </view>
+
+      <view
+        class="tab-item {{activeTab === 'monthly' ? 'tab-item-active' : ''}}"
+        bindtap="switchMonthly"
+      >
+        月报
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{loading}}" class="status-card">
+    <view class="status-text">加载中...</view>
+  </view>
+
+  <view wx:if="{{!loading && errMsg}}" class="status-card error-card">
+    <view class="status-text">{{errMsg}}</view>
+  </view>
+
+  <block wx:if="{{!loading && report}}">
+    <view class="card">
+      <view class="card-title">报告区间</view>
+      <view class="range-text">{{report.from}} ~ {{report.to}}</view>
+      <view class="range-tip">共统计 {{report.days}} 天有效记录</view>
+    </view>
+
+    <view class="card">
+      <view class="card-title">核心指标</view>
+
+      <view class="metric-grid">
+        <view class="metric-item">
+          <view class="metric-label">平均体重</view>
+          <view class="metric-value">{{report.avgWeight}}</view>
+        </view>
+
+        <view class="metric-item">
+          <view class="metric-label">平均步数</view>
+          <view class="metric-value">{{report.avgSteps}}</view>
+        </view>
+
+        <view class="metric-item">
+          <view class="metric-label">平均睡眠</view>
+          <view class="metric-value">{{report.avgSleepHours}}</view>
+        </view>
+
+        <view class="metric-item">
+          <view class="metric-label">体重趋势</view>
+          <view class="metric-value">{{report.weightTrend}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="card-title">风险判断</view>
+      <view class="summary-text">{{report.bpRisk}}</view>
+    </view>
+
+    <view class="card">
+      <view class="card-title">系统总结</view>
+      <view class="summary-text">{{report.summary}}</view>
+    </view>
+
+    <view class="card">
+      <view class="card-title">改善建议</view>
+
+      <view wx:if="{{report.suggestions.length === 0}}" class="empty-text">
+        暂无建议
+      </view>
+
+      <view wx:for="{{report.suggestions}}" wx:key="index" class="tip-item">
+        <view class="tip-dot"></view>
+        <view class="tip-text">{{item}}</view>
+      </view>
+    </view>
+  </block>
+</view>

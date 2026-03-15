@@ -1,32 +1,74 @@
-<!-- pages/article/detail/detail.wxml -->
 <view class="page">
-
-<!-- 头部：标题 + 信息 -->
-<view wx:if="{{detail}}" class="headerCard">
-  <view class="title">{{detail.title}}</view>
-
-  <view class="metaRow">
-    <view class="meta">{{detail.publishTime}}</view>
-    <view class="meta" wx:if="{{detail.views != null}}">阅读 {{detail.views}}</view>
+  <view wx:if="{{loading}}" class="state-card">
+    <view class="state-icon">⏳</view>
+    <view class="state-title">正在加载科普详情</view>
+    <view class="state-desc">请稍候，系统正在获取完整文章内容</view>
   </view>
 
-  <image
-    wx:if="{{detail.coverUrl}}"
-    class="cover"
-    mode="aspectFill"
-    src="{{detail.coverUrl}}"
-  />
-  <view wx:if="{{detail.summary}}" class="summary">{{detail.summary}}</view>
-</view>
+  <view wx:elif="{{errorMsg}}" class="state-card error-card">
+    <view class="state-icon">⚠️</view>
+    <view class="state-title">加载失败</view>
+    <view class="state-desc">{{errorMsg}}</view>
+    <button class="retry-btn" bindtap="loadDetail">
+      <text class="retry-btn-text">重新加载</text>
+    </button>
+  </view>
 
-<!-- 正文：富文本 -->
-<view wx:if="{{detail}}" class="contentCard">
-  <rich-text nodes="{{nodes}}"></rich-text>
-</view>
+  <block wx:else>
+    <view class="hero-card">
+      <view class="hero-top">
+        <view class="article-tag">健康科普</view>
+        <view class="article-time">{{detail.uiTime}}</view>
+      </view>
 
-<!-- 加载态 -->
-<view wx:else class="loadingWrap">
-  <view class="loadingText">加载中...</view>
-</view>
+      <view class="article-title">{{detail.title}}</view>
 
+      <view class="meta-row">
+        <view class="meta-item" wx:if="{{detail.views != null}}">阅读 {{detail.views}}</view>
+        <view class="meta-item" wx:if="{{detail.publishAuthor}}">作者 {{detail.publishAuthor}}</view>
+      </view>
+
+      <image
+        wx:if="{{detail.coverUrl}}"
+        class="cover"
+        mode="aspectFill"
+        src="{{detail.coverUrl}}"
+      />
+
+      <view wx:if="{{detail.summary}}" class="summary-card">
+        <view class="summary-title">内容摘要</view>
+        <view class="summary-text">{{detail.summary}}</view>
+      </view>
+    </view>
+
+    <view class="content-card">
+      <view class="section-head">
+        <view class="section-title">正文内容</view>
+        <view class="section-sub">请结合自身情况理性参考</view>
+      </view>
+
+      <rich-text class="article-content" nodes="{{nodes}}"></rich-text>
+    </view>
+
+    <view class="meta-card">
+      <view class="section-title">附加信息</view>
+
+      <view class="meta-list">
+        <view class="meta-line">
+          <view class="meta-label">发布时间</view>
+          <view class="meta-value">{{detail.uiTime || '-'}}</view>
+        </view>
+
+        <view class="meta-line" wx:if="{{detail.views != null}}">
+          <view class="meta-label">阅读量</view>
+          <view class="meta-value">{{detail.views}}</view>
+        </view>
+
+        <view class="meta-line" wx:if="{{detail.id}}">
+          <view class="meta-label">文章 ID</view>
+          <view class="meta-value">{{detail.id}}</view>
+        </view>
+      </view>
+    </view>
+  </block>
 </view>

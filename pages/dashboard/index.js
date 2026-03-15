@@ -12,7 +12,11 @@ Page({
       username: '',
       nickname: '',
       role: '',
-      phone: ''
+      phone: '',
+      age: '',
+      gender: '',
+      heightCm: '',
+      initialWeightKg: ''
     },
 
     userDisplayName: '未登录用户',
@@ -24,9 +28,11 @@ Page({
       totalRecords: 0,
       todayRecords: 0,
       activeChallenges: 0,
-      totalPoints: 0
+      totalPoints: 0,
+      latestBmi: 0
     },
 
+    latestBmiText: '--',
     trendList: []
   },
 
@@ -76,6 +82,7 @@ Page({
     let roleText = '未知角色';
     if (info.role === 'ADMIN') roleText = '管理员';
     if (info.role === 'USER') roleText = '普通用户';
+    if (info.role === 'AI_ADVISOR') roleText = 'AI健康顾问';
 
     const avatarText = displayName ? String(displayName).slice(0, 1) : 'U';
     const loginStatusText = info && info.id ? '已登录' : '未登录';
@@ -86,7 +93,11 @@ Page({
         username: info.username || '',
         nickname: info.nickname || '',
         role: info.role || '',
-        phone: info.phone || ''
+        phone: info.phone || '',
+        age: info.age == null ? '' : info.age,
+        gender: info.gender || '',
+        heightCm: info.heightCm == null ? '' : info.heightCm,
+        initialWeightKg: info.initialWeightKg == null ? '' : info.initialWeightKg
       },
       userDisplayName: displayName,
       userRoleText: roleText,
@@ -143,6 +154,7 @@ Page({
 
       this.setData({
         overview,
+        latestBmiText: overview.latestBmi > 0 ? overview.latestBmi.toFixed(1) : '--',
         trendList
       });
 
@@ -227,12 +239,14 @@ Page({
       activeChallengesFallback
     );
 
+    const latestBmi = latest && latest.bmi ? Number(latest.bmi) : 0;
+
     return {
       totalRecords: Number(totalRecords || 0),
       todayRecords: Number(todayRecords || 0),
       activeChallenges: Number(activeChallenges || 0),
       totalPoints: Number(totalPoints || 0),
-      latestBmi: latest && latest.bmi ? Number(latest.bmi) : 0
+      latestBmi: Number.isNaN(latestBmi) ? 0 : latestBmi
     };
   },
 
@@ -258,7 +272,7 @@ Page({
     list.forEach(item => {
       const fullTime = item && item.time ? String(item.time) : '';
       const fullDate = fullTime.slice(0, 10);
-      if (!valueMap.hasOwnProperty(fullDate)) return;
+      if (!Object.prototype.hasOwnProperty.call(valueMap, fullDate)) return;
 
       const value = this.pickTrendValue(item);
       if (value === null || value === undefined || Number.isNaN(value)) return;
@@ -266,11 +280,15 @@ Page({
       valueMap[fullDate] = Number(value);
     });
 
-    return last7Days.map(x => ({
-      date: x.short,
-      fullDate: x.full,
-      value: valueMap[x.full] == null ? 0 : valueMap[x.full]
-    }));
+    return last7Days.map(x => {
+      const value = valueMap[x.full] == null ? 0 : valueMap[x.full];
+      return {
+        date: x.short,
+        fullDate: x.full,
+        value,
+        displayValue: Number(value).toFixed(value % 1 === 0 ? 0 : 2)
+      };
+    });
   },
 
   pickTrendValue(item) {
@@ -320,9 +338,11 @@ Page({
         const height = item.height;
 
         ctx.clearRect(0, 0, width, height);
+        ctx.fillStyle = '#fbfcfe';
+        ctx.fillRect(0, 0, width, height);
 
         if (!list || list.length === 0) {
-          ctx.fillStyle = '#999';
+          ctx.fillStyle = '#94a3b8';
           ctx.font = '14px sans-serif';
           ctx.fillText('暂无趋势数据', 20, 40);
           return;
@@ -332,19 +352,26 @@ Page({
         const maxV = Math.max.apply(null, values.concat([1]));
         const minV = Math.min.apply(null, values.concat([0]));
 
-        const padTop = 20;
-        const padBottom = 30;
-        const padLeft = 20;
-        const padRight = 10;
+        const padTop = 22;
+        const padBottom = 36;
+        const padLeft = 24;
+        const padRight = 14;
         const w = width - padLeft - padRight;
         const h = height - padTop - padBottom;
 
-        ctx.fillStyle = '#fafafa';
-        ctx.fillRect(0, 0, width, height);
+        ctx.strokeStyle = '#e5edf7';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < 3; i++) {
+          const y = padTop + (h / 2) * i;
+          ctx.beginPath();
+          ctx.moveTo(padLeft, y);
+          ctx.lineTo(width - padRight, y);
+          ctx.stroke();
+        }
 
         ctx.beginPath();
         ctx.strokeStyle = '#22c55e';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 3;
 
         values.forEach((v, i) => {
           const x = values.length === 1
@@ -368,17 +395,17 @@ Page({
           const y = padTop + h - ((v - minV) / ((maxV - minV) || 1)) * h;
 
           ctx.beginPath();
-          ctx.arc(x, y, 3, 0, Math.PI * 2);
+          ctx.arc(x, y, 4, 0, Math.PI * 2);
           ctx.fill();
         });
 
-        ctx.fillStyle = '#666';
+        ctx.fillStyle = '#64748b';
         ctx.font = '11px sans-serif';
         list.forEach((point, i) => {
           const x = list.length === 1
             ? padLeft + w / 2
             : padLeft + (w * i) / (list.length - 1);
-          ctx.fillText(point.date, x - 14, height - 8);
+          ctx.fillText(point.date, x - 16, height - 10);
         });
       });
     } catch (e) {
@@ -412,6 +439,14 @@ Page({
 
   goMessages() {
     wx.navigateTo({ url: '/pages/message/list/list' });
+  },
+
+  goReport() {
+    wx.navigateTo({ url: '/pages/report/index/index' });
+  },
+
+  goEditProfile() {
+    wx.navigateTo({ url: '/pages/profile/index/index' });
   },
 
   logout() {

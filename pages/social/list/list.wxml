@@ -1,77 +1,58 @@
 <view class="page">
-  <view class="hero">
+  <view class="hero-card">
     <view class="hero-left">
       <view class="hero-title">健康社区</view>
-      <view class="hero-sub">发布打卡日志，交流饮食、运动和健康习惯</view>
+      <view class="hero-sub">看看大家最近的健康打卡和生活分享</view>
     </view>
 
     <view class="hero-actions">
-      <view class="ghost-btn" bindtap="goMine">我的日志</view>
-      <view class="publish-btn" bindtap="goPublish">发日志</view>
+      <button class="ghost-btn" bindtap="goMine">我的帖子</button>
+      <button class="primary-btn" bindtap="goPublish">发帖子</button>
     </view>
   </view>
 
-  <view wx:if="{{loading && posts.length === 0}}" class="state-wrap">
-    <view class="state-card">加载中...</view>
-  </view>
-
-  <view wx:if="{{errMsg}}" class="state-wrap">
-    <view class="state-card err">{{errMsg}}</view>
-  </view>
-
-  <view wx:if="{{!loading && posts.length === 0 && !errMsg}}" class="state-wrap">
-    <view class="state-card">暂无内容，快去发布第一条日志吧</view>
-  </view>
+  <view wx:if="{{loading && posts.length === 0}}" class="state-card">加载中...</view>
+  <view wx:if="{{errMsg}}" class="state-card err">{{errMsg}}</view>
+  <view wx:if="{{!loading && posts.length === 0 && !errMsg}}" class="state-card">社区里还没有内容，去发布第一条吧</view>
 
   <block wx:for="{{posts}}" wx:key="id">
     <view class="post-card" bindtap="goDetail" data-id="{{item.id}}">
       <view class="post-head">
-        <view class="avatar">{{item.avatarText}}</view>
-
-        <view class="head-main">
-          <view class="name-row">
+        <view class="user-box">
+          <view class="avatar">{{item.avatarText}}</view>
+          <view class="user-meta">
             <view class="nickname">{{item.nicknameText}}</view>
-            <view class="badge">健康打卡</view>
+            <view class="time-text">{{item.timeText}}</view>
           </view>
-          <view class="time">{{item.timeText}}</view>
         </view>
+
+        <view class="status-tag {{item.statusClass}}">{{item.statusText}}</view>
       </view>
 
       <view class="post-content">{{item.contentText}}</view>
 
-      <view wx:if="{{item.hasImages}}" class="img-grid">
-        <image
-          wx:for="{{item.imageList}}"
-          wx:key="index"
-          wx:for-item="img"
-          class="grid-img"
-          src="{{img}}"
-          mode="aspectFill"
-          data-src="{{img}}"
-          data-urls="{{item.imageList}}"
-          bindtap="previewImg"
-        />
+      <view wx:if="{{item.hasImages}}" class="image-grid">
+        <block wx:for="{{item.imageList}}" wx:key="index">
+          <image
+            class="grid-img"
+            src="{{item}}"
+            mode="aspectFill"
+            bindtap="previewImg"
+            catchtap="previewImg"
+            data-src="{{item}}"
+            data-urls="{{item.imageList}}"
+          />
+        </block>
       </view>
 
-      <view class="post-footer">
-        <view class="footer-item">
-          <text class="footer-icon">👍</text>
-          <text class="footer-text">{{item.likeText}}</text>
-        </view>
-
-        <view class="footer-item">
-          <text class="footer-icon">💬</text>
-          <text class="footer-text">{{item.commentText}}</text>
-        </view>
-
-        <view class="footer-link">查看详情</view>
+      <view class="meta-row">
+        <view class="meta-item">👍 {{item.likeText}}</view>
+        <view class="meta-item">💬 {{item.commentText}}</view>
       </view>
     </view>
   </block>
 
-  <view wx:if="{{hasMore && posts.length > 0 && !loading}}" class="more" bindtap="loadMore">
-    点击加载更多
-  </view>
+  <view wx:if="{{hasMore && posts.length > 0 && !loading}}" class="more" bindtap="loadMore">加载更多</view>
   <view wx:if="{{loading && posts.length > 0}}" class="more">加载中...</view>
   <view wx:if="{{!hasMore && posts.length > 0}}" class="more">没有更多了</view>
 </view>

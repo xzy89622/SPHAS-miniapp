@@ -1,27 +1,83 @@
 <view class="page">
-  <view class="topbar">
-    <view class="title">我的反馈</view>
-    <button class="miniBtn" bindtap="goSubmit">+ 新建</button>
+  <view class="hero-card">
+    <view class="hero-main">
+      <view class="hero-title">我的反馈</view>
+      <view class="hero-desc">查看你提交过的问题反馈与处理进度</view>
+    </view>
+
+    <button class="create-btn" bindtap="goCreate">
+      <text class="create-btn-text">+ 新建</text>
+    </button>
   </view>
 
-  <view wx:if="{{loading}}" class="hint">加载中...</view>
-
-  <view wx:if="{{!loading && list.length === 0}}" class="empty">
-    <view class="emptyTitle">暂无反馈</view>
-    <view class="emptySub">遇到问题欢迎提交，我们会尽快处理</view>
-    <button class="btn primary" bindtap="goSubmit">去提交</button>
+  <view class="summary-row">
+    <view class="summary-item">
+      <view class="summary-label">全部反馈</view>
+      <view class="summary-value">{{list.length}}</view>
+    </view>
+    <view class="summary-item">
+      <view class="summary-label">待处理</view>
+      <view class="summary-value pending">{{pendingCount}}</view>
+    </view>
+    <view class="summary-item">
+      <view class="summary-label">已处理</view>
+      <view class="summary-value done">{{doneCount}}</view>
+    </view>
   </view>
 
-  <view class="cardList" wx:else>
-    <view class="item glass" wx:for="{{list}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
-      <view class="row">
-        <view class="itTitle">{{item.title}}</view>
-        <view class="badge {{item.status === 'CLOSED' ? 'ok' : 'warn'}}">
-          {{item.status === 'CLOSED' ? '已处理' : '处理中'}}
+  <view wx:if="{{firstLoaded && !loading && list.length === 0}}" class="empty-card">
+    <view class="empty-icon">📝</view>
+    <view class="empty-title">还没有反馈记录</view>
+    <view class="empty-desc">你可以提交使用中遇到的问题、建议或异常情况</view>
+    <button class="empty-btn" bindtap="goCreate">
+      <text class="empty-btn-text">去提交反馈</text>
+    </button>
+  </view>
+
+  <view class="feedback-list" wx:if="{{list.length > 0}}">
+    <view
+      wx:for="{{list}}"
+      wx:key="id"
+      class="feedback-card"
+      bindtap="goDetail"
+      data-id="{{item.id}}"
+    >
+      <view class="card-top">
+        <view class="title-wrap">
+          <view class="feedback-title">{{item.title || '未命名反馈'}}</view>
+          <view class="feedback-time">提交时间：{{item.uiTime}}</view>
+        </view>
+
+        <view class="status-badge {{item.uiStatusClass}}">
+          {{item.uiStatusText}}
         </view>
       </view>
-      <view class="badge {{item._statusClass}}">{{item._statusText}}</view>
-      <view class="itTime">提交时间：{{item._time}}</view>
+
+      <view class="feedback-content" wx:if="{{item.uiSummary}}">
+        {{item.uiSummary}}
+      </view>
+
+      <view class="progress-wrap">
+        <view class="progress-track">
+          <view
+            class="progress-fill {{item.uiStatusClass}}"
+            style="{{item.uiProgressStyle}}"
+          ></view>
+        </view>
+        <view class="progress-text">{{item.uiProgressText}}</view>
+      </view>
+
+      <view class="card-bottom">
+        <view class="feedback-type" wx:if="{{item.uiTypeText}}">
+          {{item.uiTypeText}}
+        </view>
+        <view class="card-arrow">›</view>
+      </view>
     </view>
+  </view>
+
+  <view class="footer-card" wx:if="{{list.length > 0}}">
+    <view wx:if="{{loading}}" class="footer-text">加载中...</view>
+    <view wx:else class="footer-text">共 {{list.length}} 条反馈记录</view>
   </view>
 </view>

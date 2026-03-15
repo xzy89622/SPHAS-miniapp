@@ -1,20 +1,61 @@
-<!-- pages/notice/detail/detail.wxml -->
 <view class="page">
+  <view wx:if="{{loading}}" class="state-card">
+    <view class="state-icon">⏳</view>
+    <view class="state-title">正在加载公告详情</view>
+    <view class="state-desc">请稍候，系统正在获取完整公告内容</view>
+  </view>
 
-<!-- 头部：标题 + 时间 -->
-<view wx:if="{{detail}}" class="headerCard">
-  <view class="title">{{detail.title}}</view>
-  <view class="meta">{{detail.createTime}}</view>
-</view>
+  <view wx:elif="{{errorMsg}}" class="state-card error-card">
+    <view class="state-icon">⚠️</view>
+    <view class="state-title">加载失败</view>
+    <view class="state-desc">{{errorMsg}}</view>
+    <button class="retry-btn" bindtap="loadDetail">
+      <text class="retry-btn-text">重新加载</text>
+    </button>
+  </view>
 
-<!-- 内容：富文本 -->
-<view wx:if="{{detail}}" class="contentCard">
-  <rich-text nodes="{{nodes}}"></rich-text>
-</view>
+  <block wx:else>
+    <view class="hero-card {{notice.uiTypeClass}}">
+      <view class="hero-top">
+        <view class="notice-tag {{notice.uiTagClass}}">{{notice.uiTag}}</view>
+        <view class="notice-time">{{notice.uiTime}}</view>
+      </view>
 
-<!-- 加载态 -->
-<view wx:else class="loadingWrap">
-  <view class="loadingText">加载中...</view>
-</view>
+      <view class="hero-title">{{notice.title || '公告详情'}}</view>
 
+      <view class="hero-tip" wx:if="{{notice.uiTip}}">
+        {{notice.uiTip}}
+      </view>
+    </view>
+
+    <view class="content-card">
+      <view class="section-head">
+        <view class="section-title">公告内容</view>
+        <view class="section-sub">以下为本条公告的完整说明</view>
+      </view>
+
+      <view class="content-text">{{notice.content || '暂无内容'}}</view>
+    </view>
+
+    <view class="meta-card">
+      <view class="section-title">附加信息</view>
+
+      <view class="meta-list">
+        <view class="meta-item">
+          <view class="meta-label">公告类型</view>
+          <view class="meta-value">{{notice.uiTag}}</view>
+        </view>
+
+        <view class="meta-item">
+          <view class="meta-label">发布时间</view>
+          <view class="meta-value">{{notice.uiTime || '-'}}</view>
+        </view>
+
+        <view class="meta-item" wx:if="{{notice.id}}">
+          <view class="meta-label">公告 ID</view>
+          <view class="meta-value">{{notice.id}}</view>
+        </view>
+      </view>
+    </view>
+  </block>
 </view>

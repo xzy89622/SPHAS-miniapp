@@ -11,19 +11,29 @@ function formatTime(timeStr) {
 function getTypeText(type) {
   const map = {
     AUDIT: '审核通知',
+    RISK: '风险预警',
+    INACTIVE: '未登录提醒',
+    CHALLENGE: '挑战通知',
+    PLAN: '计划提醒',
     SYSTEM: '系统消息',
-    ALERT: '风险提醒',
-    NOTICE: '公告通知'
+    NOTICE: '公告通知',
+    BADGE: '勋章提醒',
+    ADVICE: '健康建议'
   };
-  return map[type] || type || '消息通知';
+  return map[type] || '消息通知';
 }
 
 function getTypeIcon(type) {
   const map = {
     AUDIT: '🛡️',
+    RISK: '⚠️',
+    INACTIVE: '⏰',
+    CHALLENGE: '🏆',
+    PLAN: '📋',
     SYSTEM: '📢',
-    ALERT: '⚠️',
-    NOTICE: '📌'
+    NOTICE: '📌',
+    BADGE: '🎖️',
+    ADVICE: '🩺'
   };
   return map[type] || '🔔';
 }
@@ -31,11 +41,21 @@ function getTypeIcon(type) {
 function getTypeClass(type) {
   const map = {
     AUDIT: 'audit',
+    RISK: 'alert',
+    INACTIVE: 'notice',
+    CHALLENGE: 'system',
+    PLAN: 'plan',
     SYSTEM: 'system',
-    ALERT: 'alert',
-    NOTICE: 'notice'
+    NOTICE: 'notice',
+    BADGE: 'badge',
+    ADVICE: 'advice'
   };
   return map[type] || 'system';
+}
+
+function getSubText(type) {
+  if (type === 'ADVICE') return 'AI 健康顾问给你的建议内容';
+  return '查看消息详情与状态信息';
 }
 
 Page({
@@ -64,29 +84,34 @@ Page({
     });
 
     try {
-      const res = await api.messageDetail(id);
-      const row = res || {};
+      const row = await api.messageDetail(id);
 
-      if (!row.readFlag) {
+      if (Number(row.isRead || 0) === 0) {
         try {
           await api.readMessage(id);
-          row.readFlag = 1;
+          row.isRead = 1;
           row.readTime = row.readTime || new Date().toISOString();
         } catch (e) {
           console.log('[message detail] readMessage fail', e);
         }
       }
 
+      const isRead = Number(row.isRead || 0) === 1;
+      const type = row.type || '';
+
       const detail = {
         ...row,
-        typeText: getTypeText(row.type),
-        typeIcon: getTypeIcon(row.type),
-        typeClass: getTypeClass(row.type),
+        isRead: isRead ? 1 : 0,
+        typeText: getTypeText(type),
+        typeIcon: getTypeIcon(type),
+        typeClass: getTypeClass(type),
         titleText: row.title || '消息通知',
         contentText: row.content || '暂无内容',
         createTimeText: formatTime(row.createTime),
         readTimeText: formatTime(row.readTime),
-        readText: row.readFlag ? '已读' : '未读'
+        readText: isRead ? '已读' : '未读',
+        subText: getSubText(type),
+        sourceText: type === 'ADVICE' ? 'AI健康顾问建议' : '系统消息'
       };
 
       this.setData({

@@ -1,4 +1,4 @@
-const socialApi = require('../../api/social.js');
+const socialApi = require('../../api/social');
 
 function formatTime(timeStr) {
   if (!timeStr) return '';
@@ -8,21 +8,6 @@ function formatTime(timeStr) {
     .slice(0, 16);
 }
 
-function mapStatusText(status) {
-  if (status === 1) return '已发布';
-  if (status === 2) return '审核中';
-  if (status === 3) return '已驳回';
-  if (status === 0) return '已隐藏';
-  return '未知状态';
-}
-
-function mapStatusClass(status) {
-  if (status === 1) return 'ok';
-  if (status === 2) return 'wait';
-  if (status === 3) return 'reject';
-  return 'hide';
-}
-
 Page({
   data: {
     loading: false,
@@ -30,110 +15,143 @@ Page({
     pageNum: 1,
     pageSize: 10,
     hasMore: true,
-    status: '',
     list: [],
-    inited: false
+    stats: {
+      total: 0,
+      pending: 0,
+      passed: 0,
+      rejected: 0,
+      hidden: 0
+    }
   },
 
   onLoad() {
-    const app = getApp();
-    if (!app || typeof app.requireLogin !== 'function') return;
-    if (!app.requireLogin()) return;
-    this.reload();
+    this.loadAll();
   },
 
   onShow() {
-    if (!this.data.inited) return;
-    this.reload();
+    this.loadAll();
   },
 
   onPullDownRefresh() {
-    this.reload().finally(() => wx.stopPullDownRefresh());
+    this.loadAll().finally(() => {
+      wx.stopPullDownRefresh();
+    });
   },
 
   onReachBottom() {
     this.loadMore();
   },
 
-  setStatus(e) {
-    const status = e.currentTarget.dataset.status || '';
-    if (String(status) === String(this.data.status)) return;
+  normalizeList(list) {
+    if (!Array.isArray(list)) return [];
 
-    this.setData({ status });
-    this.reload();
+    return list.map(item => {
+      const row = socialApi.normalizePost ? socialApi.normalizePost(item) : (item || {});
+      const images = Array.isArray(row.images) ? row.images : [];
+      const canEdit = Number(row.status) === 3;
+
+      return {
+        ...row,
+        contentText: row.content || '',
+        createTimeText: formatTime(row.createTime || row.createdAt || row.gmtCreate || ''),
+        likeCountText: Number(row.likeCount || 0),
+        commentCountText: Number(row.commentCount || 0),
+        imageCount: images.length,
+        firstImage: images.length > 0 ? images[0] : '',
+        deletedFlag: Number(row.deletedFlag || 0),
+        canEdit
+      };
+    });
   },
 
-  async reload() {
+  async loadAll() {
     this.setData({
-      loading: false,
+      loading: true,
       errMsg: '',
       pageNum: 1,
       hasMore: true,
       list: []
     });
-    await this.fetchPage(true);
+
+    try {
+      const [pageRes, statsRes] = await Promise.all([
+        socialApi.myPosts({
+          pageNum: 1,
+          pageSize: this.data.pageSize
+        }),
+        socialApi.myPostStats().catch(() => ({
+          total: 0,
+          pending: 0,
+          passed: 0,
+          rejected: 0,
+          hidden: 0
+        }))
+      ]);
+
+      const records = this.normalizeList(pageRes.records || []);
+      const total = Number(pageRes.total || 0);
+
+      this.setData({
+        list: records,
+        pageNum: 1,
+        hasMore: total > records.length,
+        stats: statsRes
+      });
+    } catch (e) {
+      console.error('[social mine] loadAll fail =', e);
+      this.setData({
+        errMsg: e.msg || e.message || '加载失败'
+      });
+    } finally {
+      this.setData({
+        loading: false
+      });
+    }
   },
 
   async loadMore() {
     if (this.data.loading || !this.data.hasMore) return;
 
-    this.setData({
-      pageNum: this.data.pageNum + 1
-    });
-
-    await this.fetchPage(false);
-  },
-
-  normalizeRow(item) {
-    const status = Number(item.status);
-    return {
-      ...item,
-      statusText: mapStatusText(status),
-      statusClass: mapStatusClass(status),
-      timeText: formatTime(item.createTime),
-      updateTimeText: formatTime(item.updateTime),
-      hasImages: socialApi.parseImagesJson(item.imagesJson).length > 0
-    };
-  },
-
-  async fetchPage(reset) {
+    const nextPage = this.data.pageNum + 1;
     this.setData({ loading: true });
 
     try {
-      const params = {
-        pageNum: this.data.pageNum,
+      const res = await socialApi.myPosts({
+        pageNum: nextPage,
         pageSize: this.data.pageSize
-      };
+      });
 
-      if (this.data.status !== '') {
-        params.status = Number(this.data.status);
-      }
-
-      const res = await socialApi.pageMyPosts(params);
-      const records = Array.isArray(res.records) ? res.records : [];
-      const nextList = records.map(item => this.normalizeRow(item));
-      const list = reset ? nextList : this.data.list.concat(nextList);
+      const records = this.normalizeList(res.records || []);
+      const all = this.data.list.concat(records);
       const total = Number(res.total || 0);
 
       this.setData({
-        list,
-        hasMore: list.length < total,
-        errMsg: '',
-        inited: true
+        list: all,
+        pageNum: nextPage,
+        hasMore: total > all.length
       });
     } catch (e) {
-      console.error('[social mine] fetchPage fail =', e);
-      this.setData({
-        errMsg: e.msg || e.message || '加载失败',
-        inited: true
+      console.error('[social mine] loadMore fail =', e);
+      wx.showToast({
+        title: e.msg || e.message || '加载更多失败',
+        icon: 'none'
       });
     } finally {
-      this.setData({ loading: false });
+      this.setData({
+        loading: false
+      });
     }
   },
 
+  goPublish() {
+    wx.navigateTo({
+      url: '/pages/social/publish/publish'
+    });
+  },
+
   goDetail(e) {
-    const id = e.currentTarget.dataset.id;
+    const id = Number(e.currentTarget.dataset.id || 0);
     if (!id) return;
 
     wx.navigateTo({
@@ -141,9 +159,51 @@ Page({
     });
   },
 
-  goMessage() {
+  goEdit(e) {
+    const id = Number(e.currentTarget.dataset.id || 0);
+    const canEdit = !!e.currentTarget.dataset.canEdit;
+    if (!id) return;
+
+    if (!canEdit) {
+      wx.showToast({
+        title: '只有已驳回的帖子才能编辑',
+        icon: 'none'
+      });
+      return;
+    }
+
     wx.navigateTo({
-      url: '/pages/message/list/list'
+      url: `/pages/social/edit/edit?id=${id}`
+    });
+  },
+
+  async onDelete(e) {
+    const id = Number(e.currentTarget.dataset.id || 0);
+    if (!id) return;
+
+    wx.showModal({
+      title: '提示',
+      content: '确定删除这条帖子吗？删除后不会在社区中显示。',
+      success: async (res) => {
+        if (!res.confirm) return;
+
+        try {
+          await socialApi.deletePost(id);
+
+          wx.showToast({
+            title: '删除成功',
+            icon: 'success'
+          });
+
+          this.loadAll();
+        } catch (e) {
+          console.error('[social mine] delete fail =', e);
+          wx.showToast({
+            title: e.msg || e.message || '删除失败',
+            icon: 'none'
+          });
+        }
+      }
     });
   }
 });

@@ -1,31 +1,56 @@
-<!-- pages/notice/list/list.wxml -->
 <view class="page">
+  <view class="hero-card">
+    <view class="hero-main">
+      <view class="hero-title">系统公告</view>
+      <view class="hero-desc">查看系统通知、维护信息与健康风险提醒</view>
+    </view>
 
-<view class="topBar">
-  <view class="tip">下拉可刷新，滑到底部自动加载更多</view>
-  <view class="count" wx:if="{{total > 0}}">共 {{total}} 条</view>
-</view>
-
-<!-- 空状态 -->
-<!-- 空状态：必须首次加载完成后才显示，避免闪烁 -->
-<view wx:if="{{firstLoaded && !loading && list.length === 0}}" class="empty">
-  暂无公告
-</view>
-
-
-<!-- 列表 -->
-<block wx:for="{{list}}" wx:key="id">
-  <view class="item" bindtap="goDetail" data-id="{{item.id}}">
-    <view class="title">{{item.title}}</view>
-    <view class="meta">{{item.createTime}}</view>
+    <view class="hero-side">
+      <view class="hero-side-num">{{total > 0 ? total : list.length}}</view>
+      <view class="hero-side-text">公告总数</view>
+    </view>
   </view>
-</block>
 
-<!-- 底部状态 -->
-<view class="footer" wx:if="{{list.length > 0}}">
-  <view wx:if="{{loading}}" class="footerText">加载中...</view>
-  <view wx:elif="{{finished}}" class="footerText">没有更多了</view>
-  <view wx:else class="footerText">上滑加载更多</view>
-</view>
+  <view class="top-bar">
+    <view class="top-tip">下拉可刷新，滑到底部自动加载更多</view>
+    <view class="top-count" wx:if="{{(total > 0 ? total : list.length) > 0}}">
+      当前 {{list.length}} 条
+    </view>
+  </view>
 
+  <view wx:if="{{firstLoaded && !loading && list.length === 0}}" class="empty-card">
+    <view class="empty-icon">📢</view>
+    <view class="empty-title">暂无公告</view>
+    <view class="empty-desc">当前还没有可展示的系统公告内容</view>
+  </view>
+
+  <view class="notice-list" wx:if="{{list.length > 0}}">
+    <view
+      wx:for="{{list}}"
+      wx:key="id"
+      class="notice-card {{item.uiTypeClass}}"
+      bindtap="goDetail"
+      data-id="{{item.id}}"
+    >
+      <view class="card-top">
+        <view class="notice-tag {{item.uiTagClass}}">{{item.uiTag}}</view>
+        <view class="notice-time">{{item.uiTime}}</view>
+      </view>
+
+      <view class="notice-title">{{item.title}}</view>
+
+      <view class="notice-summary">{{item.uiSummary}}</view>
+
+      <view class="card-bottom">
+        <view class="notice-index">公告 #{{index + 1}}</view>
+        <view class="notice-arrow">›</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="footer-card" wx:if="{{list.length > 0}}">
+    <view wx:if="{{loading}}" class="footer-text">加载中...</view>
+    <view wx:elif="{{finished}}" class="footer-text">已经到底了</view>
+    <view wx:else class="footer-text">继续上滑加载更多</view>
+  </view>
 </view>

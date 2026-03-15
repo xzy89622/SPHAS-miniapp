@@ -1,111 +1,225 @@
 <view class="page">
-  <view class="user-card">
-    <view class="user-left">
-      <view class="avatar">{{userAvatarText}}</view>
-      <view class="user-main">
-        <view class="user-name">{{userDisplayName}}</view>
-        <view class="user-sub">
-          <text>ID：{{userInfo.id || '-'}}</text>
-          <text class="dot">·</text>
-          <text>角色：{{userRoleText}}</text>
+  <view class="hero-card">
+    <view class="hero-top">
+      <view class="hero-user">
+        <view class="avatar">{{userAvatarText}}</view>
+        <view class="hero-user-main">
+          <view class="hero-name-row">
+            <view class="hero-name">{{userDisplayName}}</view>
+            <view class="role-badge">{{userRoleText}}</view>
+          </view>
+          <view class="hero-sub">
+            <text>ID：{{userInfo.id || '-'}}</text>
+            <text class="hero-dot">·</text>
+            <text>{{loginStatusText}}</text>
+          </view>
         </view>
       </view>
-    </view>
-    <button size="mini" class="logout-btn" bindtap="logout">退出登录</button>
-  </view>
 
-  <view class="profile-panel">
-    <view class="panel-title">我的资料</view>
-
-    <view class="info-row">
-      <text class="info-label">登录状态</text>
-      <text class="info-value">{{loginStatusText}}</text>
+      <button class="logout-btn" bindtap="logout">
+        <text class="logout-btn-text">退出登录</text>
+      </button>
     </view>
 
-    <view class="info-row">
-      <text class="info-label">昵称</text>
-      <text class="info-value">{{userInfo.nickname || '未填写'}}</text>
-    </view>
-
-    <view class="info-row">
-      <text class="info-label">用户名</text>
-      <text class="info-value">{{userInfo.username || '未填写'}}</text>
-    </view>
-
-    <view class="info-row">
-      <text class="info-label">手机号</text>
-      <text class="info-value">{{userInfo.phone || '未绑定'}}</text>
-    </view>
-
-    <view class="info-row">
-      <text class="info-label">角色</text>
-      <text class="info-value">{{userRoleText}}</text>
-    </view>
-
-    <view class="info-row">
-      <text class="info-label">用户 ID</text>
-      <text class="info-value">{{userInfo.id || '-'}}</text>
+    <view class="hero-stats">
+      <view class="hero-stat">
+        <view class="hero-stat-label">累计记录</view>
+        <view class="hero-stat-value">{{overview.totalRecords}}</view>
+      </view>
+      <view class="hero-stat">
+        <view class="hero-stat-label">今日打卡</view>
+        <view class="hero-stat-value">{{overview.todayRecords}}</view>
+      </view>
+      <view class="hero-stat">
+        <view class="hero-stat-label">总积分</view>
+        <view class="hero-stat-value">{{overview.totalPoints}}</view>
+      </view>
     </view>
   </view>
 
-  <view class="header">
-    <view class="title">我的健康概览</view>
-    <view class="sub">实时概览 + 最近趋势</view>
-    <button class="btn" size="mini" bindtap="reload">刷新</button>
+  <view class="section-card profile-card">
+    <view class="section-head">
+      <view>
+        <view class="section-title">我的资料</view>
+        <view class="section-sub">账号信息与身份概览</view>
+      </view>
+
+      <button class="refresh-btn" bindtap="goEditProfile">
+        <text class="refresh-btn-text">编辑资料</text>
+      </button>
+    </view>
+
+    <view class="info-grid">
+      <view class="info-item">
+        <view class="info-label">登录状态</view>
+        <view class="info-value">{{loginStatusText}}</view>
+      </view>
+      <view class="info-item">
+        <view class="info-label">昵称</view>
+        <view class="info-value">{{userInfo.nickname || '未填写'}}</view>
+      </view>
+      <view class="info-item">
+        <view class="info-label">用户名</view>
+        <view class="info-value">{{userInfo.username || '未填写'}}</view>
+      </view>
+      <view class="info-item">
+        <view class="info-label">手机号</view>
+        <view class="info-value">{{userInfo.phone || '未绑定'}}</view>
+      </view>
+      <view class="info-item">
+        <view class="info-label">角色</view>
+        <view class="info-value">{{userRoleText}}</view>
+      </view>
+      <view class="info-item">
+        <view class="info-label">用户 ID</view>
+        <view class="info-value">{{userInfo.id || '-'}}</view>
+      </view>
+      <view class="info-item">
+        <view class="info-label">年龄</view>
+        <view class="info-value">{{userInfo.age || '未填写'}}</view>
+      </view>
+      <view class="info-item">
+        <view class="info-label">性别</view>
+        <view class="info-value">{{userInfo.gender || '未填写'}}</view>
+      </view>
+      <view class="info-item">
+        <view class="info-label">身高(cm)</view>
+        <view class="info-value">{{userInfo.heightCm || '未填写'}}</view>
+      </view>
+      <view class="info-item">
+        <view class="info-label">初始体重(kg)</view>
+        <view class="info-value">{{userInfo.initialWeightKg || '未填写'}}</view>
+      </view>
+    </view>
   </view>
 
-  <view class="quick">
-    <view class="q-title">快捷入口</view>
-    <view class="q-row">
-      <button size="mini" bindtap="goHealthRecord">健康记录</button>
-      <button size="mini" bindtap="goAssessment">体质评估</button>
-      <button size="mini" bindtap="goRecommend">今日推荐</button>
-      <button size="mini" bindtap="goChallenge">健康挑战</button>
-      <button size="mini" bindtap="goPoints">积分中心</button>
-      <button size="mini" bindtap="goCommunity">健康社区</button>
-      <button size="mini" bindtap="goMessages">消息中心</button>
+  <view class="section-card overview-card">
+    <view class="section-head">
+      <view>
+        <view class="section-title">我的健康概览</view>
+        <view class="section-sub">实时概览 + 最近趋势</view>
+      </view>
+
+      <button class="refresh-btn" bindtap="reload">
+        <text class="refresh-btn-text">刷新</text>
+      </button>
+    </view>
+
+    <view class="metric-grid">
+      <view class="metric-card">
+        <view class="metric-label">累计健康记录</view>
+        <view class="metric-value">{{overview.totalRecords}}</view>
+        <view class="metric-tip">已录入的健康数据总数</view>
+      </view>
+
+      <view class="metric-card">
+        <view class="metric-label">今日打卡</view>
+        <view class="metric-value">{{overview.todayRecords}}</view>
+        <view class="metric-tip">今天已提交的记录数</view>
+      </view>
+
+      <view class="metric-card">
+        <view class="metric-label">进行中挑战</view>
+        <view class="metric-value">{{overview.activeChallenges}}</view>
+        <view class="metric-tip">当前仍在参与的挑战</view>
+      </view>
+
+      <view class="metric-card">
+        <view class="metric-label">积分总计</view>
+        <view class="metric-value">{{overview.totalPoints}}</view>
+        <view class="metric-tip">已累计的成长积分</view>
+      </view>
     </view>
   </view>
 
-  <view class="cards">
-    <view class="card">
-      <view class="label">累计健康记录</view>
-      <view class="value">{{overview.totalRecords}}</view>
+  <view class="section-card quick-card">
+    <view class="section-head">
+      <view>
+        <view class="section-title">快捷入口</view>
+        <view class="section-sub">快速进入核心功能模块</view>
+      </view>
     </view>
-    <view class="card">
-      <view class="label">今日打卡</view>
-      <view class="value">{{overview.todayRecords}}</view>
-    </view>
-    <view class="card">
-      <view class="label">进行中挑战</view>
-      <view class="value">{{overview.activeChallenges}}</view>
-    </view>
-    <view class="card">
-      <view class="label">积分总计</view>
-      <view class="value">{{overview.totalPoints}}</view>
+
+    <view class="quick-grid">
+      <view class="quick-item" bindtap="goHealthRecord">
+        <view class="quick-icon">📝</view>
+        <view class="quick-text">健康记录</view>
+      </view>
+
+      <view class="quick-item" bindtap="goAssessment">
+        <view class="quick-icon">📋</view>
+        <view class="quick-text">体质评估</view>
+      </view>
+
+      <view class="quick-item" bindtap="goRecommend">
+        <view class="quick-icon">🎯</view>
+        <view class="quick-text">今日推荐</view>
+      </view>
+
+      <view class="quick-item" bindtap="goChallenge">
+        <view class="quick-icon">🏃</view>
+        <view class="quick-text">健康挑战</view>
+      </view>
+
+      <view class="quick-item" bindtap="goPoints">
+        <view class="quick-icon">⭐</view>
+        <view class="quick-text">积分中心</view>
+      </view>
+
+      <view class="quick-item" bindtap="goCommunity">
+        <view class="quick-icon">💬</view>
+        <view class="quick-text">健康社区</view>
+      </view>
+
+      <view class="quick-item" bindtap="goMessages">
+        <view class="quick-icon">🔔</view>
+        <view class="quick-text">消息中心</view>
+      </view>
+
+      <view class="quick-item" bindtap="goReport">
+        <view class="quick-icon">📊</view>
+        <view class="quick-text">健康报告</view>
+      </view>
     </view>
   </view>
 
-  <view class="panel">
-    <view class="panel-title">
-      <text>最近 7 天趋势</text>
-      <text class="hint">系统根据后端 trend 接口展示最近趋势数据</text>
+  <view class="section-card trend-card">
+    <view class="section-head trend-head">
+      <view>
+        <view class="section-title">最近 7 天趋势</view>
+        <view class="section-sub">系统根据后端趋势接口展示最近健康变化</view>
+      </view>
+
+      <view class="mini-badge" wx:if="{{overview.latestBmi > 0}}">
+        BMI {{latestBmiText}}
+      </view>
     </view>
 
     <canvas class="chart" canvas-id="trendCanvas" id="trendCanvas" type="2d"></canvas>
 
-    <view class="trend-list" wx:if="{{trendList.length > 0}}">
-      <view class="trend-item" wx:for="{{trendList}}" wx:key="date">
-        <text class="date">{{item.date}}</text>
-        <text class="val">{{item.value}}</text>
-      </view>
+    <view class="empty-card" wx:if="{{trendList.length === 0 && !loading}}">
+      <view class="empty-icon">📉</view>
+      <view class="empty-text">暂无趋势数据</view>
     </view>
 
-    <view wx:if="{{trendList.length === 0 && !loading}}" class="empty">
-      暂无趋势数据
+    <view class="trend-table" wx:if="{{trendList.length > 0}}">
+      <view class="trend-table-head">
+        <text class="trend-head-date">日期</text>
+        <text class="trend-head-value">数值</text>
+      </view>
+
+      <view class="trend-row" wx:for="{{trendList}}" wx:key="fullDate">
+        <text class="trend-date">{{item.date}}</text>
+        <text class="trend-value">{{item.displayValue}}</text>
+      </view>
     </view>
   </view>
 
-  <view class="status" wx:if="{{loading}}">加载中...</view>
-  <view class="status err" wx:if="{{!loading && errorMsg}}">{{errorMsg}}</view>
+  <view class="status loading-status" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+
+  <view class="status error-status" wx:if="{{!loading && errorMsg}}">
+    <text>{{errorMsg}}</text>
+  </view>
 </view>

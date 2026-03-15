@@ -15,6 +15,9 @@ function toDateTimeString(dateStr) {
 Page({
   data: {
     submitting: false,
+    completionText: '0/6',
+    bmiText: '--',
+    healthHint: '待填写',
     form: {
       recordDate: '',
       heightCm: '',
@@ -29,11 +32,9 @@ Page({
   },
 
   onLoad(options) {
-    this.setData({ 'form.recordDate': today() });
-
-    if (options && options.recordDate) {
-      this.setData({ 'form.recordDate': options.recordDate });
-    }
+    const date = options && options.recordDate ? options.recordDate : today();
+    this.setData({ 'form.recordDate': date });
+    this.updateDerivedState();
   },
 
   onDateChange(e) {
@@ -42,7 +43,55 @@ Page({
 
   onInput(e) {
     const k = e.currentTarget.dataset.k;
-    this.setData({ [`form.${k}`]: e.detail.value });
+    this.setData({ [`form.${k}`]: e.detail.value }, () => {
+      this.updateDerivedState();
+    });
+  },
+
+  updateDerivedState() {
+    const f = this.data.form;
+
+    const fields = [
+      f.heightCm,
+      f.weightKg,
+      f.systolic,
+      f.diastolic,
+      f.heartRate,
+      f.steps,
+      f.sleepHours
+    ];
+
+    const filled = fields.filter(v => v !== '' && v !== null && v !== undefined).length;
+    const completionText = `${filled}/7`;
+
+    const heightM = Number(f.heightCm) / 100;
+    const weightKg = Number(f.weightKg);
+
+    let bmiText = '--';
+    let healthHint = '待填写';
+
+    if (heightM > 0 && weightKg > 0) {
+      const bmi = weightKg / (heightM * heightM);
+      bmiText = bmi.toFixed(1);
+
+      if (bmi < 18.5) {
+        healthHint = '偏瘦';
+      } else if (bmi < 24) {
+        healthHint = '正常';
+      } else if (bmi < 28) {
+        healthHint = '偏高';
+      } else {
+        healthHint = '肥胖风险';
+      }
+    } else if (filled > 0) {
+      healthHint = '信息待完善';
+    }
+
+    this.setData({
+      completionText,
+      bmiText,
+      healthHint
+    });
   },
 
   validate() {
@@ -56,6 +105,30 @@ Page({
 
     if (f.weightKg && (Number(f.weightKg) < 20 || Number(f.weightKg) > 300)) {
       return '体重请填写 20~300 之间';
+    }
+
+    if (f.systolic && (Number(f.systolic) < 60 || Number(f.systolic) > 260)) {
+      return '收缩压请填写 60~260 之间';
+    }
+
+    if (f.diastolic && (Number(f.diastolic) < 40 || Number(f.diastolic) > 180)) {
+      return '舒张压请填写 40~180 之间';
+    }
+
+    if (f.heartRate && (Number(f.heartRate) < 30 || Number(f.heartRate) > 220)) {
+      return '心率请填写 30~220 之间';
+    }
+
+    if (f.steps && (Number(f.steps) < 0 || Number(f.steps) > 100000)) {
+      return '步数请填写 0~100000 之间';
+    }
+
+    if (f.sleepHours && (Number(f.sleepHours) < 0 || Number(f.sleepHours) > 24)) {
+      return '睡眠时长请填写 0~24 之间';
+    }
+
+    if (!f.heightCm && !f.weightKg && !f.systolic && !f.diastolic && !f.heartRate && !f.steps && !f.sleepHours) {
+      return '请至少填写一项健康数据';
     }
 
     return '';
@@ -148,9 +221,9 @@ Page({
 
       wx.showModal({
         title: '保存成功',
-        content: '健康数据已保存，是否立即去做体质评估？',
+        content: '数据已同步保存，是否立即前往体质评估页？',
         confirmText: '去评估',
-        cancelText: '继续查看',
+        cancelText: '看记录',
         success: (res) => {
           if (res.confirm) {
             wx.navigateTo({ url: '/pages/assessment/index/index' });
@@ -161,6 +234,10 @@ Page({
       });
     } catch (e) {
       console.error('[health record] save fail:', e);
+      wx.showToast({
+        title: '保存失败，请稍后重试',
+        icon: 'none'
+      });
     } finally {
       this.setData({ submitting: false });
     }

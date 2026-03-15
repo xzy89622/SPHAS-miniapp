@@ -1,10 +1,12 @@
 <view class="page">
-  <view class="card">
+  <view class="card intro-card">
     <view class="title">体质评估问卷</view>
     <view class="tip">提交后会结合你的最新健康数据和问卷结果生成评估与推荐</view>
   </view>
 
-  <view wx:if="{{loading}}" class="loading">加载题目中...</view>
+  <view wx:if="{{loading}}" class="loading-card">
+    <view class="loading-text">加载题目中...</view>
+  </view>
 
   <view wx:if="{{!loading}}">
     <block wx:for="{{questions}}" wx:key="id">
@@ -13,8 +15,10 @@
 
         <view wx:if="{{item.uiType === 'number'}}" class="input-wrap">
           <input
+            class="form-input"
             type="number"
             placeholder="请输入数字"
+            placeholder-class="input-placeholder"
             value="{{answers[item.id]}}"
             data-qid="{{item.id}}"
             bindinput="onInputAnswer"
@@ -24,7 +28,9 @@
 
         <view wx:elif="{{item.uiType === 'text'}}" class="input-wrap">
           <textarea
+            class="form-textarea"
             placeholder="请输入内容"
+            placeholder-class="textarea-placeholder"
             value="{{answers[item.id]}}"
             data-qid="{{item.id}}"
             bindinput="onInputAnswer"
@@ -75,12 +81,12 @@
       </view>
     </block>
 
-    <button type="primary" bindtap="onSubmit" disabled="{{submitting}}">
-      {{submitting ? '提交中...' : '提交评估'}}
+    <button class="submit-btn" bindtap="onSubmit" disabled="{{submitting}}">
+      <text class="submit-btn-text">{{submitting ? '提交中...' : '提交评估'}}</text>
     </button>
   </view>
 
-  <view wx:if="{{result}}" class="card result">
+  <view wx:if="{{result}}" class="card result-card">
     <view class="title">评估结果</view>
 
     <view class="line">BMI：{{result.bmi || '-'}}</view>
@@ -105,6 +111,8 @@
       {{(result.sport && (result.sport.name || result.sport.title || result.sport.description || result.sport.content)) || '-'}}
     </view>
 
-    <button bindtap="goRecommend">查看今日推荐页</button>
+    <button class="recommend-btn" bindtap="goRecommend">
+      <text class="recommend-btn-text">查看今日推荐页</text>
+    </button>
   </view>
 </view>

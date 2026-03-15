@@ -1,111 +1,105 @@
 <view class="page">
-  <view wx:if="{{loading}}" class="state-card">加载中...</view>
-  <view wx:if="{{errMsg}}" class="state-card err">{{errMsg}}</view>
+  <view wx:if="{{detail}}" class="hero-card">
+    <view class="hero-title">{{detail.title}}</view>
+    <view class="hero-desc">{{detail.description}}</view>
 
-  <block wx:if="{{!loading && detail}}">
-    <view class="hero-card">
-      <view class="hero-top">
-        <view class="type-tag">{{detail.typeText}}</view>
-        <view class="reward-tag">+{{detail.rewardPoints}} 积分</view>
-      </view>
-
-      <view class="hero-title">{{detail.title}}</view>
-      <view class="hero-desc">{{detail.description}}</view>
+    <view class="tag-row">
+      <text class="tag">类型：{{detail.type}}</text>
+      <text class="tag">目标：{{detail.targetValue}}</text>
+      <text class="tag">奖励：{{detail.rewardPoints}}分</text>
     </view>
 
-    <view class="card">
-      <view class="section-title">挑战信息</view>
+    <view class="date-row">
+      <text>开始：{{detail.startDate}}</text>
+      <text>结束：{{detail.endDate}}</text>
+    </view>
+  </view>
 
-      <view class="info-row">
-        <view class="info-label">目标值</view>
-        <view class="info-value">{{detail.targetValue}}</view>
-      </view>
-      <view class="info-row">
-        <view class="info-label">开始日期</view>
-        <view class="info-value">{{detail.startDateText}}</view>
-      </view>
-      <view class="info-row">
-        <view class="info-label">结束日期</view>
-        <view class="info-value">{{detail.endDateText}}</view>
-      </view>
+  <view class="card">
+    <view class="card-title">我的参与状态</view>
+
+    <view wx:if="{{myJoin}}" class="join-box">
+      <view class="join-line">当前进度：{{myJoin.progressValue}}</view>
+      <view class="join-line">是否完成：{{myJoin.finished ? '已完成' : '未完成'}}</view>
+      <view class="join-line" wx:if="{{myJoin.finishTime}}">完成时间：{{myJoin.finishTime}}</view>
     </view>
 
-    <view class="card">
-      <view class="section-title">我的状态</view>
+    <view wx:else class="empty-text">
+      你还没有参加这个挑战
+    </view>
 
-      <view class="info-row">
-        <view class="info-label">参与状态</view>
-        <view class="info-value">{{joinedText}}</view>
-      </view>
-      <view class="info-row">
-        <view class="info-label">完成状态</view>
-        <view class="info-value">{{finishedText}}</view>
-      </view>
-      <view class="info-row">
-        <view class="info-label">当前进度</view>
-        <view class="info-value">{{progressValue}} / {{detail.targetValue}}</view>
-      </view>
+    <view class="btn-row" wx:if="{{!myJoin}}">
+      <button class="primary-btn" bindtap="onJoin">参加挑战</button>
+    </view>
+  </view>
 
-      <view class="progress-wrap">
-        <view class="progress-bar">
-          <view class="progress-inner" style="{{progressBarStyle}}"></view>
-        </view>
-        <view class="progress-text">完成度 {{progressPercent}}%</view>
-      </view>
+  <view class="card">
+    <view class="card-title">更新我的进度</view>
 
-      <view wx:if="{{showMyProgressRank}}" class="rank-tip">
-        我的进度排名：第 {{myProgressRank.rank}} 名
-      </view>
+    <input
+      class="progress-input"
+      type="number"
+      placeholder="请输入当前进度"
+      value="{{progressInput}}"
+      bindinput="onProgressInput"
+    />
 
-      <view wx:if="{{showMyFinishRank}}" class="rank-tip">
-        我的完成排名：第 {{myFinishRank.rank}} 名
-      </view>
+    <view class="btn-row">
+      <button class="ghost-btn" loading="{{saving}}" disabled="{{saving}}" bindtap="onSaveProgress">
+        {{saving ? '保存中...' : '保存进度'}}
+      </button>
 
-      <button wx:if="{{!joined}}" class="main-btn" type="primary" bindtap="joinNow">报名挑战</button>
-
-      <view wx:if="{{joined && !finished}}" class="action-box">
-        <input
-          class="ipt"
-          type="number"
-          placeholder="请输入新的进度值"
-          value="{{progressInput}}"
-          bindinput="onProgressInput"
-        />
-        <view class="btn-row">
-          <button size="mini" class="ghost-btn" bindtap="fillTarget">填入目标值</button>
-          <button size="mini" class="mini-main-btn" type="primary" bindtap="saveProgress">更新进度</button>
-        </view>
-      </view>
-
-      <button wx:if="{{joined && !finished}}" class="finish-btn" bindtap="finishNow">
+      <button class="primary-btn" bindtap="onFinish">
         完成挑战
       </button>
     </view>
+  </view>
 
-    <view wx:if="{{progressRankList.length > 0}}" class="card">
-      <view class="section-title">进度排行榜</view>
-      <block wx:for="{{progressRankList}}" wx:key="index">
-        <view class="rank-item">
-          <view class="rank-left">
-            <view class="rank-no">#{{item.rankText}}</view>
-            <view class="rank-user">{{item.userText}}</view>
-          </view>
-          <view class="rank-score">{{item.scoreText}}</view>
-        </view>
-      </block>
-    </view>
+  <view class="card">
+    <view class="card-title">我的排名</view>
 
-    <view wx:if="{{finishRankList.length > 0}}" class="card">
-      <view class="section-title">完成排行榜</view>
-      <block wx:for="{{finishRankList}}" wx:key="index">
-        <view class="rank-item">
-          <view class="rank-left">
-            <view class="rank-no">#{{item.rankText}}</view>
-            <view class="rank-user">{{item.userText}}</view>
-          </view>
-          <view class="rank-score">{{item.scoreText}}</view>
+    <view class="rank-box">
+      <view class="rank-item">
+        <view class="rank-label">进度榜排名</view>
+        <view class="rank-value">
+          {{myProgressRank && myProgressRank.rank ? ('第 ' + myProgressRank.rank + ' 名') : '暂无'}}
         </view>
-      </block>
+      </view>
+
+      <view class="rank-item">
+        <view class="rank-label">完成榜排名</view>
+        <view class="rank-value">
+          {{myFinishRank && myFinishRank.rank ? ('第 ' + myFinishRank.rank + ' 名') : '暂无'}}
+        </view>
+      </view>
     </view>
-  </block>
+  </view>
+
+  <view class="card">
+    <view class="card-title">进度榜 Top10</view>
+
+    <view wx:if="{{progressTopList.length === 0}}" class="empty-text">暂无数据</view>
+
+    <view wx:for="{{progressTopList}}" wx:key="index" class="list-row">
+      <view class="list-left">
+        <text class="rank-no">{{index + 1}}</text>
+        <text class="user-text">{{item.nickname || ('用户' + item.userId)}}</text>
+      </view>
+      <view class="list-right">{{item.progressValue}}</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">完成榜 Top10</view>
+
+    <view wx:if="{{finishTopList.length === 0}}" class="empty-text">暂无数据</view>
+
+    <view wx:for="{{finishTopList}}" wx:key="index" class="list-row">
+      <view class="list-left">
+        <text class="rank-no">{{index + 1}}</text>
+        <text class="user-text">{{item.nickname || ('用户' + item.userId)}}</text>
+      </view>
+      <view class="list-right">{{item.finishTime || '已完成'}}</view>
+    </view>
+  </view>
 </view>
