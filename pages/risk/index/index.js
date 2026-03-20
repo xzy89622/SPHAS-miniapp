@@ -7,8 +7,15 @@ Page({
     days: 30,
 
     chartWidth: 320,
-    chartHeight: 180,
+    chartHeight: 220,
     chartReady: false,
+
+    chartHintVisible: false,
+    chartHintLeft: 0,
+    chartHintTop: 0,
+    activeChartIndex: -1,
+    activeChartLabel: '',
+    activeChartValue: 0,
 
     dashboard: {
       days: 30,
@@ -34,6 +41,10 @@ Page({
   },
 
   onLoad() {
+    this.chartMeta = null;
+    this.chartPoints = [];
+    this.chartRect = null;
+
     this.initChartSize();
     this.reloadAll();
   },
@@ -52,15 +63,23 @@ Page({
       const windowWidth = sys.windowWidth || 375;
 
       this.setData({
-        chartWidth: windowWidth - 24,
-        chartHeight: 180,
+        chartWidth: windowWidth - 36,
+        chartHeight: 220,
         chartReady: true
       }, () => {
+        this.measureChartRect();
         this.drawRiskTrend();
       });
     } catch (e) {
       console.error('[risk] initChartSize fail =', e);
     }
+  },
+
+  measureChartRect() {
+    const query = wx.createSelectorQuery().in(this);
+    query.select('#riskTrendCanvas').boundingClientRect(rect => {
+      this.chartRect = rect || null;
+    }).exec();
   },
 
   reloadAll(fromPullDown) {
@@ -77,6 +96,7 @@ Page({
         dashboard: dashboard || this.data.dashboard,
         historyList: Array.isArray(history) ? history.map(this.normalizeHistoryItem) : []
       }, () => {
+        this.measureChartRect();
         this.drawRiskTrend();
       });
     }).catch(e => {
@@ -194,7 +214,11 @@ Page({
 
   changeDays(e) {
     const days = Number(e.currentTarget.dataset.days || 30);
-    this.setData({ days });
+    this.setData({
+      days,
+      chartHintVisible: false,
+      activeChartIndex: -1
+    });
     this.refreshDashboardOnly();
   },
 
@@ -206,6 +230,7 @@ Page({
 
     this.loadDashboard(this.data.days).then(dashboard => {
       this.setData({ dashboard }, () => {
+        this.measureChartRect();
         this.drawRiskTrend();
       });
     }).catch(e => {
@@ -223,7 +248,7 @@ Page({
 
     const daily = Array.isArray(this.data.dashboard.daily) ? this.data.dashboard.daily : [];
     const width = this.data.chartWidth || 320;
-    const height = this.data.chartHeight || 180;
+    const height = this.data.chartHeight || 220;
 
     const ctx = wx.createCanvasContext('riskTrendCanvas', this);
     ctx.clearRect(0, 0, width, height);
@@ -231,6 +256,13 @@ Page({
     ctx.fillRect(0, 0, width, height);
 
     if (!daily.length) {
+      this.chartMeta = null;
+      this.chartPoints = [];
+      this.setData({
+        chartHintVisible: false,
+        activeChartIndex: -1
+      });
+
       ctx.setFillStyle('#999999');
       ctx.setFontSize(14);
       ctx.fillText('暂无趋势数据', width / 2 - 42, height / 2);
@@ -245,126 +277,282 @@ Page({
         : (item.total !== undefined ? item.total : (item.value !== undefined ? item.value : 0));
 
       return {
+        rawDate: rawDate,
         label: this.formatShortDate(rawDate),
         value: Number(rawValue || 0)
       };
     });
 
     const padding = {
-      top: 20,
-      right: 16,
-      bottom: 32,
-      left: 30
+      top: 22,
+      right: 20,
+      bottom: 42,
+      left: 34
     };
 
     const chartW = width - padding.left - padding.right;
     const chartH = height - padding.top - padding.bottom;
+    const maxValue = Math.max(...parsed.map(i => i.value), 1);
+    const yMax = Math.max(maxValue, 4);
+    const stepX = parsed.length > 1 ? chartW / (parsed.length - 1) : 0;
 
-    const maxValue = Math.max.apply(null, parsed.map(item => item.value).concat([1]));
-    const pointCount = parsed.length;
-    const stepX = pointCount > 1 ? chartW / (pointCount - 1) : chartW / 2;
-
-    ctx.setStrokeStyle('#dddddd');
-    ctx.setLineWidth(1);
-    ctx.beginPath();
-    ctx.moveTo(padding.left, padding.top);
-    ctx.lineTo(padding.left, padding.top + chartH);
-    ctx.lineTo(padding.left + chartW, padding.top + chartH);
-    ctx.stroke();
-
-    const gridCount = 4;
-    for (let i = 0; i <= gridCount; i++) {
-      const y = padding.top + (chartH / gridCount) * i;
-
-      ctx.setStrokeStyle('#f0f0f0');
-      ctx.beginPath();
-      ctx.moveTo(padding.left, y);
-      ctx.lineTo(padding.left + chartW, y);
-      ctx.stroke();
-
-      const val = Math.round(maxValue - (maxValue / gridCount) * i);
-      ctx.setFillStyle('#999999');
-      ctx.setFontSize(10);
-      ctx.fillText(String(val), 4, y + 3);
-    }
-
-    const points = parsed.map((item, index) => {
-      const x = pointCount > 1
-        ? padding.left + stepX * index
-        : padding.left + chartW / 2;
-      const y = padding.top + chartH - (item.value / maxValue) * chartH;
-
+    const points = parsed.map((item, idx) => {
+      const x = parsed.length > 1 ? padding.left + stepX * idx : padding.left + chartW / 2;
+      const y = padding.top + chartH - (item.value / yMax) * chartH;
       return {
+        ...item,
+        index: idx,
         x,
-        y,
-        label: item.label,
-        value: item.value
+        y
       };
     });
 
-    if (points.length > 0) {
-      ctx.beginPath();
-      ctx.moveTo(points[0].x, padding.top + chartH);
-      points.forEach(p => {
-        ctx.lineTo(p.x, p.y);
-      });
-      ctx.lineTo(points[points.length - 1].x, padding.top + chartH);
-      ctx.closePath();
-      ctx.setFillStyle('rgba(47,107,255,0.12)');
-      ctx.fill();
+    this.chartMeta = {
+      width,
+      height,
+      padding,
+      chartW,
+      chartH,
+      yMax,
+      points
+    };
+    this.chartPoints = points;
 
+    // 网格线
+    ctx.setStrokeStyle('#e5e7eb');
+    ctx.setLineWidth(1);
+    for (let i = 0; i <= 4; i++) {
+      const y = padding.top + chartH * i / 4;
       ctx.beginPath();
-      points.forEach((p, index) => {
-        if (index === 0) {
-          ctx.moveTo(p.x, p.y);
-        } else {
-          ctx.lineTo(p.x, p.y);
-        }
-      });
-      ctx.setStrokeStyle('#2f6bff');
-      ctx.setLineWidth(2);
+      ctx.moveTo(padding.left, y);
+      ctx.lineTo(width - padding.right, y);
+      ctx.stroke();
+    }
+
+    // y轴文字
+    ctx.setFillStyle('#94a3b8');
+    ctx.setFontSize(10);
+    for (let i = 0; i <= 4; i++) {
+      const value = Math.round(yMax * (4 - i) / 4);
+      const y = padding.top + chartH * i / 4 + 4;
+      ctx.fillText(String(value), 6, y);
+    }
+
+    // x轴文字抽样
+    const labelStep = this.getLabelStep(points.length);
+    points.forEach((item, idx) => {
+      const shouldShow =
+        idx === 0 ||
+        idx === points.length - 1 ||
+        idx % labelStep === 0;
+
+      if (!shouldShow) return;
+
+      ctx.setFillStyle('#94a3b8');
+      ctx.setFontSize(10);
+      ctx.fillText(item.label, item.x - 12, height - 12);
+    });
+
+    // 折线
+    ctx.setStrokeStyle('#2f6bff');
+    ctx.setLineWidth(2);
+    ctx.beginPath();
+    points.forEach((item, idx) => {
+      if (idx === 0) {
+        ctx.moveTo(item.x, item.y);
+      } else {
+        ctx.lineTo(item.x, item.y);
+      }
+    });
+    ctx.stroke();
+
+    // 面积
+    ctx.beginPath();
+    points.forEach((item, idx) => {
+      if (idx === 0) {
+        ctx.moveTo(item.x, item.y);
+      } else {
+        ctx.lineTo(item.x, item.y);
+      }
+    });
+    const last = points[points.length - 1];
+    const first = points[0];
+    ctx.lineTo(last.x, padding.top + chartH);
+    ctx.lineTo(first.x, padding.top + chartH);
+    ctx.closePath();
+    ctx.setFillStyle('rgba(47,107,255,0.08)');
+    ctx.fill();
+
+    // 普通点
+    points.forEach(item => {
+      ctx.setFillStyle('#2f6bff');
+      ctx.beginPath();
+      ctx.arc(item.x, item.y, 3, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // 只给非0点标数值
+    let lastValueLabelX = -999;
+    points.forEach(item => {
+      if (item.value <= 0) return;
+      if (item.x - lastValueLabelX < 26) return;
+
+      ctx.setFillStyle('#2f6bff');
+      ctx.setFontSize(10);
+      ctx.fillText(String(item.value), item.x - 4, item.y - 10);
+
+      lastValueLabelX = item.x;
+    });
+
+    // 高亮当前选中的点
+    const activeIndex = this.data.activeChartIndex;
+    if (activeIndex >= 0 && points[activeIndex]) {
+      const active = points[activeIndex];
+
+      ctx.setStrokeStyle('rgba(47,107,255,0.25)');
+      ctx.setLineWidth(1);
+      ctx.beginPath();
+      ctx.moveTo(active.x, padding.top);
+      ctx.lineTo(active.x, padding.top + chartH);
       ctx.stroke();
 
-      points.forEach(p => {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
-        ctx.setFillStyle('#2f6bff');
-        ctx.fill();
-      });
+      ctx.setFillStyle('#ffffff');
+      ctx.beginPath();
+      ctx.arc(active.x, active.y, 6, 0, Math.PI * 2);
+      ctx.fill();
 
-      const labelStep = pointCount > 10 ? Math.ceil(pointCount / 6) : 1;
-      points.forEach((p, index) => {
-        if (index % labelStep !== 0 && index !== points.length - 1) return;
-        ctx.setFillStyle('#999999');
-        ctx.setFontSize(10);
-        ctx.fillText(p.label, p.x - 12, padding.top + chartH + 18);
-      });
+      ctx.setStrokeStyle('#2f6bff');
+      ctx.setLineWidth(3);
+      ctx.beginPath();
+      ctx.arc(active.x, active.y, 6, 0, Math.PI * 2);
+      ctx.stroke();
     }
 
     ctx.draw();
   },
 
-  formatShortDate(dateStr) {
-    if (!dateStr) return '';
-    const s = String(dateStr);
-    if (s.indexOf('-') > -1) {
-      const arr = s.split('-');
-      if (arr.length >= 3) {
-        return arr[1] + '-' + arr[2];
-      }
-    }
-    return s.length > 5 ? s.slice(-5) : s;
+  getLabelStep(length) {
+    if (length <= 7) return 1;
+    if (length <= 10) return 2;
+    if (length <= 15) return 3;
+    if (length <= 24) return 4;
+    if (length <= 31) return 5;
+    return 7;
   },
 
-  goRecord() {
-    wx.navigateTo({
-      url: '/pages/health/record/record'
+  formatShortDate(raw) {
+    if (!raw) return '';
+    const text = String(raw);
+    if (text.includes('-')) {
+      const arr = text.split('-');
+      if (arr.length >= 3) {
+        return `${arr[1]}/${arr[2]}`;
+      }
+    }
+    return text.slice(-5);
+  },
+
+  getTouchCanvasPoint(e) {
+    const touch =
+      (e.touches && e.touches[0]) ||
+      (e.changedTouches && e.changedTouches[0]) ||
+      null;
+
+    if (!touch || !this.chartRect) return null;
+
+    return {
+      x: touch.pageX - this.chartRect.left,
+      y: touch.pageY - this.chartRect.top
+    };
+  },
+
+  getNearestPointIndex(x) {
+    const points = this.chartPoints || [];
+    if (!points.length) return -1;
+
+    let nearestIndex = 0;
+    let minDistance = Infinity;
+
+    points.forEach((item, idx) => {
+      const distance = Math.abs(item.x - x);
+      if (distance < minDistance) {
+        minDistance = distance;
+        nearestIndex = idx;
+      }
+    });
+
+    return nearestIndex;
+  },
+
+  updateActivePoint(index) {
+    const points = this.chartPoints || [];
+    const point = points[index];
+    if (!point) return;
+
+    const hintWidth = 124;
+    const hintHeight = 58;
+    const width = this.data.chartWidth || 320;
+
+    let left = point.x - hintWidth / 2;
+    if (left < 8) left = 8;
+    if (left + hintWidth > width - 8) left = width - hintWidth - 8;
+
+    let top = point.y - hintHeight - 14;
+    if (top < 8) {
+      top = point.y + 14;
+    }
+
+    this.setData({
+      activeChartIndex: index,
+      activeChartLabel: point.rawDate || point.label,
+      activeChartValue: point.value,
+      chartHintVisible: true,
+      chartHintLeft: left,
+      chartHintTop: top
+    }, () => {
+      this.drawRiskTrend();
+    });
+  },
+
+  onChartTap(e) {
+    if (!this.chartPoints || !this.chartPoints.length) return;
+    const pos = this.getTouchCanvasPoint(e);
+    if (!pos) return;
+
+    const index = this.getNearestPointIndex(pos.x);
+    this.updateActivePoint(index);
+  },
+
+  onChartTouchStart(e) {
+    this.onChartTap(e);
+  },
+
+  onChartTouchMove(e) {
+    this.onChartTap(e);
+  },
+
+  onChartTouchEnd() {
+    // 这里不隐藏提示，方便用户停下来继续看
+  },
+
+  hideChartHint() {
+    this.setData({
+      chartHintVisible: false,
+      activeChartIndex: -1
+    }, () => {
+      this.drawRiskTrend();
     });
   },
 
   goLatest() {
     wx.navigateTo({
-      url: '/pages/health/latest/latest'
+      url: '/pages/health-record/list/list'
+    });
+  },
+
+  goRecord() {
+    wx.navigateTo({
+      url: '/pages/health-record/create/create'
     });
   }
 });

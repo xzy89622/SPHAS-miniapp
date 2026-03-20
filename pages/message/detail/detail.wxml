@@ -16,7 +16,7 @@
       </view>
 
       <view class="title">{{detail.titleText}}</view>
-      <view class="sub">查看消息详情与状态信息</view>
+      <view class="sub">{{detail.subText}}</view>
     </view>
 
     <view class="card">
@@ -41,11 +41,25 @@
         <view class="info-label">消息类型</view>
         <view class="info-value">{{detail.typeText}}</view>
       </view>
+
+      <view class="info-row">
+        <view class="info-label">消息来源</view>
+        <view class="info-value">{{detail.sourceText}}</view>
+      </view>
+
+      <view class="info-row" wx:if="{{detail.canGoRisk}}">
+        <view class="info-label">关联预警ID</view>
+        <view class="info-value">{{detail.bizId}}</view>
+      </view>
     </view>
 
     <view class="card">
       <view class="section-title">消息内容</view>
       <view class="content">{{detail.contentText}}</view>
+
+      <button wx:if="{{detail.canGoRisk}}" class="go-btn" bindtap="goRiskRecord">
+        查看对应风险记录
+      </button>
     </view>
   </block>
 </view>

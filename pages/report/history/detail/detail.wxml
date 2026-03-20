@@ -1,0 +1,85 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="status-card">
+    <view class="status-text">加载中...</view>
+  </view>
+
+  <view wx:if="{{!loading && errMsg}}" class="status-card error-card">
+    <view class="status-text">{{errMsg}}</view>
+  </view>
+
+  <block wx:if="{{!loading && detail}}">
+    <view class="hero-card">
+      <view class="hero-tag">{{detail.reportTypeText}}</view>
+      <view class="hero-title">{{detail.title}}</view>
+      <view class="hero-range">{{detail.weekStart}} ~ {{detail.weekEnd}}</view>
+      <view class="hero-time">生成时间：{{detail.updatedAt}}</view>
+    </view>
+
+    <view class="card">
+      <view class="card-title">系统总结</view>
+      <view class="summary-text">{{detail.summary}}</view>
+    </view>
+
+    <view class="card">
+      <view class="card-title">核心指标</view>
+
+      <view class="metric-grid">
+        <view class="metric-item">
+          <view class="metric-label">平均体重</view>
+          <view class="metric-value">{{detail.avgWeight}}</view>
+        </view>
+
+        <view class="metric-item">
+          <view class="metric-label">平均步数</view>
+          <view class="metric-value">{{detail.avgSteps}}</view>
+        </view>
+
+        <view class="metric-item">
+          <view class="metric-label">平均睡眠</view>
+          <view class="metric-value">{{detail.avgSleepHours}}</view>
+        </view>
+
+        <view class="metric-item">
+          <view class="metric-label">体重趋势</view>
+          <view class="metric-value">{{detail.weightTrend}}</view>
+        </view>
+
+        <view class="metric-item">
+          <view class="metric-label">风险条数</view>
+          <view class="metric-value">{{detail.bpRiskCount}}</view>
+        </view>
+
+        <view class="metric-item">
+          <view class="metric-label">记录数量</view>
+          <view class="metric-value">{{detail.recordCount}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="card-title">风险提示</view>
+
+      <view wx:if="{{detail.riskTips.length === 0}}" class="empty-text">
+        暂无风险提示
+      </view>
+
+      <view wx:for="{{detail.riskTips}}" wx:key="index" class="tip-item">
+        <view class="tip-dot risk-dot"></view>
+        <view class="tip-text">{{item}}</view>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="card-title">改善建议</view>
+
+      <view wx:if="{{detail.suggestions.length === 0}}" class="empty-text">
+        暂无建议
+      </view>
+
+      <view wx:for="{{detail.suggestions}}" wx:key="index" class="tip-item">
+        <view class="tip-dot"></view>
+        <view class="tip-text">{{item}}</view>
+      </view>
+    </view>
+  </block>
+</view>

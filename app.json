@@ -28,7 +28,9 @@
     "pages/social/mine/mine",
     "pages/social/edit/edit",
     "pages/report/index/index",
-    "pages/profile/index/index"
+    "pages/profile/index/index",
+    "pages/report/history/list/list",
+    "pages/report/history/detail/detail"
   ],
   "window": {
     "navigationBarTitleText": "SPHAS",

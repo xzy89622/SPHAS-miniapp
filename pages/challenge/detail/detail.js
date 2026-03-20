@@ -1,5 +1,50 @@
 const challengeApi = require('../../api/challenge');
 
+function formatDateText(v) {
+  if (!v) return '-';
+  return String(v).slice(0, 10);
+}
+
+function formatDateTimeText(v) {
+  if (!v) return '';
+  return String(v).replace('T', ' ').slice(0, 19);
+}
+
+function mapTypeText(type) {
+  const map = {
+    STEP: '步数挑战',
+    RUN: '跑步挑战',
+    DIET: '饮食挑战',
+    CUSTOM: '自定义挑战'
+  };
+  return map[type] || type || '健康挑战';
+}
+
+function toBool(v) {
+  return v === true || v === 1 || v === '1';
+}
+
+// 把后端详情接口返回的数据整理一下
+function normalizeDetail(res) {
+  const raw = res || {};
+  const challenge = raw.challenge || raw || {};
+
+  return {
+    id: challenge.id || raw.id || null,
+    title: challenge.title || raw.title || '',
+    description: challenge.description || raw.description || '',
+    type: challenge.type || raw.type || '',
+    typeText: mapTypeText(challenge.type || raw.type),
+    targetValue: Number(challenge.targetValue || raw.targetValue || 0),
+    rewardPoints: Number(challenge.rewardPoints || raw.rewardPoints || 0),
+    startDate: formatDateText(challenge.startDate || raw.startDate),
+    endDate: formatDateText(challenge.endDate || raw.endDate),
+    joined: toBool(raw.joined),
+    myProgress: Number(raw.myProgress || 0),
+    finished: toBool(raw.finished)
+  };
+}
+
 Page({
   data: {
     id: null,
@@ -63,14 +108,28 @@ Page({
         challengeApi.myFinishRank(id).catch(() => null)
       ]);
 
+      const detail = normalizeDetail(detailRes);
+
       const myList = Array.isArray(myListRes.records) ? myListRes.records : [];
       const myJoin = myList.find(item => Number(item.challengeId) === Number(id)) || null;
 
       this.setData({
-        detail: detailRes,
-        myJoin,
+        detail,
+        myJoin: myJoin
+          ? {
+              ...myJoin,
+              progressValue: Number(myJoin.progressValue || 0),
+              finished: toBool(myJoin.finished),
+              finishTime: formatDateTimeText(myJoin.finishTime)
+            }
+          : null,
         progressTopList: Array.isArray(progressTopRes) ? progressTopRes : [],
-        finishTopList: Array.isArray(finishTopRes) ? finishTopRes : [],
+        finishTopList: Array.isArray(finishTopRes)
+          ? finishTopRes.map(item => ({
+              ...item,
+              finishTime: formatDateTimeText(item.finishTime)
+            }))
+          : [],
         myProgressRank: myProgressRes,
         myFinishRank: myFinishRes,
         progressInput: myJoin && myJoin.progressValue != null ? String(myJoin.progressValue) : ''

@@ -18,6 +18,8 @@
         月报
       </view>
     </view>
+
+    <view class="history-btn" bindtap="goHistory">查看历史报告</view>
   </view>
 
   <view wx:if="{{loading}}" class="status-card">

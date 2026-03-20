@@ -46,14 +46,33 @@
 
   <view class="card">
     <view class="section-title">风险趋势图</view>
-    <view class="chart-desc">展示当前统计周期内每日预警次数变化</view>
+    <view class="chart-desc">点击或左右滑动图表，可查看每天的预警次数</view>
+
     <view class="chart-wrap">
       <canvas
         canvas-id="riskTrendCanvas"
         id="riskTrendCanvas"
         class="trend-canvas"
         style="width: {{chartWidth}}px; height: {{chartHeight}}px;"
+        bindtap="onChartTap"
+        bindtouchstart="onChartTouchStart"
+        bindtouchmove="onChartTouchMove"
+        bindtouchend="onChartTouchEnd"
       ></canvas>
+
+      <view
+        wx:if="{{chartHintVisible}}"
+        class="chart-tooltip"
+        style="left: {{chartHintLeft}}px; top: {{chartHintTop}}px;"
+      >
+        <view class="chart-tooltip-date">{{activeChartLabel}}</view>
+        <view class="chart-tooltip-value">预警次数：{{activeChartValue}}</view>
+      </view>
+    </view>
+
+    <view class="chart-tip-row" wx:if="{{chartHintVisible}}">
+      <view class="chart-tip-text">当前查看：{{activeChartLabel}}，预警次数 {{activeChartValue}}</view>
+      <view class="chart-tip-close" bindtap="hideChartHint">收起</view>
     </view>
   </view>
 

@@ -54,7 +54,7 @@ function getTypeClass(type) {
 }
 
 function getSubText(type) {
-  if (type === 'ADVICE') return 'AI 健康顾问给你的建议内容';
+  if (type === 'ADVICE') return 'AI健康顾问给你的建议内容';
   return '查看消息详情与状态信息';
 }
 
@@ -98,10 +98,12 @@ Page({
 
       const isRead = Number(row.isRead || 0) === 1;
       const type = row.type || '';
+      const bizId = row.bizId ? Number(row.bizId) : 0;
 
       const detail = {
         ...row,
         isRead: isRead ? 1 : 0,
+        bizId,
         typeText: getTypeText(type),
         typeIcon: getTypeIcon(type),
         typeClass: getTypeClass(type),
@@ -111,7 +113,8 @@ Page({
         readTimeText: formatTime(row.readTime),
         readText: isRead ? '已读' : '未读',
         subText: getSubText(type),
-        sourceText: type === 'ADVICE' ? 'AI健康顾问建议' : '系统消息'
+        sourceText: type === 'ADVICE' ? 'AI健康顾问建议' : '系统消息',
+        canGoRisk: type === 'ADVICE' && bizId > 0
       };
 
       this.setData({
@@ -127,5 +130,14 @@ Page({
         loading: false
       });
     }
+  },
+
+  goRiskRecord() {
+    const detail = this.data.detail || {};
+    if (!detail.canGoRisk || !detail.bizId) return;
+
+    wx.navigateTo({
+      url: `/pages/risk/index/index?focusId=${detail.bizId}`
+    });
   }
 });

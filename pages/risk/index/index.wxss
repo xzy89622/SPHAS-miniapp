@@ -134,6 +134,7 @@
 }
 
 .chart-wrap {
+  position: relative;
   width: 100%;
   overflow: hidden;
   border-radius: 18rpx;
@@ -144,6 +145,56 @@
   width: 100%;
   border-radius: 18rpx;
   background: #ffffff;
+  display: block;
+}
+
+.chart-tooltip {
+  position: absolute;
+  width: 124px;
+  min-height: 58px;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  background: rgba(17, 24, 39, 0.92);
+  color: #ffffff;
+  border-radius: 12px;
+  z-index: 10;
+  pointer-events: none;
+  box-shadow: 0 10rpx 24rpx rgba(0, 0, 0, 0.18);
+}
+
+.chart-tooltip-date {
+  font-size: 12px;
+  line-height: 1.4;
+  opacity: 0.88;
+}
+
+.chart-tooltip-value {
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.chart-tip-row {
+  margin-top: 14rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.chart-tip-text {
+  flex: 1;
+  font-size: 24rpx;
+  color: #475569;
+  line-height: 1.6;
+}
+
+.chart-tip-close {
+  flex-shrink: 0;
+  font-size: 24rpx;
+  color: #2f6bff;
+  font-weight: 700;
 }
 
 .summary {
@@ -263,40 +314,39 @@
 }
 
 .history-item {
-  padding: 18rpx 0;
-  border-bottom: 1rpx solid #f0f0f0;
-}
-
-.history-item:last-child {
-  border-bottom: none;
-}
-
-.bottom-actions {
-  display: flex;
-  gap: 16rpx;
-  margin-top: 10rpx;
-}
-
-.mini-btn {
-  flex: 1;
-  border-radius: 16rpx;
-  background: #ffffff;
-  color: #333333;
-  font-size: 26rpx;
-}
-
-.mini-btn::after {
-  border: none;
+  margin-top: 18rpx;
+  padding: 20rpx;
+  border-radius: 18rpx;
+  background: #f9fafb;
 }
 
 .empty,
 .status {
   text-align: center;
-  color: #999999;
-  font-size: 28rpx;
-  padding: 40rpx 0;
+  color: #888888;
+  font-size: 26rpx;
+  padding: 24rpx 0;
 }
 
 .status.err {
-  color: #e53935;
+  color: #ef4444;
+}
+
+.bottom-actions {
+  display: flex;
+  gap: 16rpx;
+  margin: 12rpx 0 30rpx;
+}
+
+.mini-btn {
+  flex: 1;
+  background: #ffffff;
+  color: #2f6bff;
+  border-radius: 16rpx;
+  font-size: 26rpx;
+  box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.05);
+}
+
+.mini-btn::after {
+  border: none;
 }

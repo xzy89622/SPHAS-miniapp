@@ -63,6 +63,11 @@
   color: #7c3aed;
 }
 
+.type-tag.advice {
+  background: #ecfeff;
+  color: #0f766e;
+}
+
 .type-icon {
   margin-right: 8rpx;
   font-size: 24rpx;
@@ -152,4 +157,16 @@
   line-height: 1.9;
   white-space: pre-wrap;
   word-break: break-all;
+}
+
+.go-btn {
+  margin-top: 24rpx;
+  background: #2f6bff;
+  color: #ffffff;
+  border-radius: 18rpx;
+  font-size: 28rpx;
+}
+
+.go-btn::after {
+  border: none;
 }

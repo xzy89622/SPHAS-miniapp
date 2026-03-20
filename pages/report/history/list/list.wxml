@@ -1,0 +1,55 @@
+<view class="page">
+  <view class="hero-card">
+    <view class="hero-title">历史报告</view>
+    <view class="hero-desc">查看系统已经生成过的周报和月报</view>
+
+    <view class="tab-row">
+      <view
+        class="tab-item {{activeTab === 'WEEK' ? 'tab-item-active' : ''}}"
+        bindtap="switchWeek"
+      >
+        周报
+      </view>
+
+      <view
+        class="tab-item {{activeTab === 'MONTH' ? 'tab-item-active' : ''}}"
+        bindtap="switchMonth"
+      >
+        月报
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{errMsg}}" class="status-card error-card">
+    <view class="status-text">{{errMsg}}</view>
+  </view>
+
+  <view wx:if="{{list.length === 0 && !loading && !errMsg}}" class="status-card">
+    <view class="status-text">暂无历史报告</view>
+  </view>
+
+  <view
+    wx:for="{{list}}"
+    wx:key="id"
+    class="report-card"
+    data-id="{{item.id}}"
+    bindtap="goDetail"
+  >
+    <view class="card-top">
+      <view class="report-type">{{item.reportTypeText}}</view>
+      <view class="report-time">{{item.updatedAt}}</view>
+    </view>
+
+    <view class="report-title">{{item.title}}</view>
+    <view class="report-range">{{item.weekStart}} ~ {{item.weekEnd}}</view>
+    <view class="report-summary">{{item.summary}}</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="status-card">
+    <view class="status-text">加载中...</view>
+  </view>
+
+  <view wx:if="{{finished && list.length > 0}}" class="bottom-tip">
+    已经到底了
+  </view>
+</view>

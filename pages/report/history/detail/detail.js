@@ -1,45 +1,48 @@
-const reportApi = require('../../../utils/report');
+const reportApi = require('../../../../utils/report');
 
 Page({
   data: {
-    activeTab: 'weekly',
+    id: null,
     loading: false,
     errMsg: '',
-    report: null
+    detail: null
   },
 
-  onLoad() {
-    this.loadReport();
+  onLoad(options) {
+    const id = Number(options.id || 0);
+    if (!id) {
+      this.setData({
+        errMsg: '报告ID无效'
+      });
+      return;
+    }
+
+    this.setData({ id });
+    this.loadDetail();
   },
 
   onPullDownRefresh() {
-    this.loadReport().finally(() => {
+    this.loadDetail().finally(() => {
       wx.stopPullDownRefresh();
     });
   },
 
-  async loadReport() {
+  async loadDetail() {
     this.setData({
       loading: true,
       errMsg: ''
     });
 
     try {
-      let res = null;
-
-      if (this.data.activeTab === 'weekly') {
-        res = await reportApi.weeklyReport();
-      } else {
-        res = await reportApi.monthlyReport();
-      }
+      const res = await reportApi.historyDetail(this.data.id);
 
       this.setData({
-        report: this.normalizeReport(res || {})
+        detail: this.normalizeDetail(res || {})
       });
     } catch (e) {
-      console.error('[report] load fail =', e);
+      console.error('[report detail] load fail =', e);
       this.setData({
-        errMsg: e.msg || e.message || '报告加载失败'
+        errMsg: e.msg || e.message || '报告详情加载失败'
       });
     } finally {
       this.setData({
@@ -48,19 +51,26 @@ Page({
     }
   },
 
-  normalizeReport(raw) {
+  normalizeDetail(raw) {
+    const riskTips = Array.isArray(raw.riskTips) ? raw.riskTips : [];
     const suggestions = Array.isArray(raw.suggestions) ? raw.suggestions : [];
 
     return {
-      from: raw.from || '-',
-      to: raw.to || '-',
-      days: Number(raw.days || 0),
+      id: raw.id,
+      title: raw.title || '健康报告',
+      reportTypeText: raw.reportType === 'MONTH' ? '月报' : '周报',
+      weekStart: raw.weekStart || '-',
+      weekEnd: raw.weekEnd || '-',
+      summary: raw.summary || '暂无总结',
       avgWeight: this.formatNumber(raw.avgWeight, 'kg'),
       avgSteps: this.formatInteger(raw.avgSteps, '步'),
       avgSleepHours: this.formatNumber(raw.avgSleepHours, '小时'),
       weightTrend: raw.weightTrend || '数据不足',
-      bpRisk: raw.bpRisk ? '有偏高风险' : '暂无明显风险',
-      summary: raw.summary || '暂无总结',
+      bpRiskCount: Number(raw.bpRiskCount || 0),
+      recordCount: Number(raw.recordCount || 0),
+      userCount: Number(raw.userCount || 0),
+      updatedAt: raw.updatedAt || raw.createdAt || '',
+      riskTips,
       suggestions
     };
   },
@@ -85,27 +95,5 @@ Page({
       return '--';
     }
     return `${parseInt(n, 10)}${unit || ''}`;
-  },
-
-  switchWeekly() {
-    if (this.data.activeTab === 'weekly') return;
-    this.setData({
-      activeTab: 'weekly'
-    });
-    this.loadReport();
-  },
-
-  switchMonthly() {
-    if (this.data.activeTab === 'monthly') return;
-    this.setData({
-      activeTab: 'monthly'
-    });
-    this.loadReport();
-  },
-
-  goHistory() {
-    wx.navigateTo({
-      url: '/pages/report/history/list/list'
-    });
   }
 });
