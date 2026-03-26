@@ -3,6 +3,14 @@
     <view class="title">账号资料</view>
     <view class="desc">这里可以维护你的基础资料，后面推荐和健康分析会用到这些信息</view>
 
+    <view class="entry-card" bindtap="goBlockChain">
+      <view class="entry-left">
+        <view class="entry-title">数据存证</view>
+        <view class="entry-desc">查看健康指标和风险预警的链式存证记录</view>
+      </view>
+      <view class="entry-arrow">></view>
+    </view>
+
     <view class="form-item">
       <view class="label">用户名</view>
       <input class="input input-disabled" value="{{form.username}}" disabled />

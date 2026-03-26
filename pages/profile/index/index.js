@@ -92,11 +92,16 @@ Page({
     });
   },
 
-  // 点性别按钮
   onGenderTap(e) {
     const gender = e.currentTarget.dataset.gender || '';
     this.setData({
       'form.gender': gender
+    });
+  },
+
+  goBlockChain() {
+    wx.navigateTo({
+      url: '/pages/blockchain/index/index'
     });
   },
 
@@ -165,7 +170,6 @@ Page({
         initialWeightKg: weightText ? Number(weightText) : null
       });
 
-      // 保存成功后顺手更新本地缓存
       const localUser = auth.getUserInfo ? (auth.getUserInfo() || {}) : {};
       const nextUser = {
         ...localUser,

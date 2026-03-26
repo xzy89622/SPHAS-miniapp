@@ -1,5 +1,7 @@
 const request = require('../../../utils/request');
 
+const RISK_DETAIL_CACHE_KEY = 'RISK_DETAIL_CACHE';
+
 Page({
   data: {
     loading: false,
@@ -94,7 +96,7 @@ Page({
     ]).then(([dashboard, history]) => {
       this.setData({
         dashboard: dashboard || this.data.dashboard,
-        historyList: Array.isArray(history) ? history.map(this.normalizeHistoryItem) : []
+        historyList: Array.isArray(history) ? history.map(item => this.normalizeHistoryItem(item)) : []
       }, () => {
         this.measureChartRect();
         this.drawRiskTrend();
@@ -119,7 +121,7 @@ Page({
   },
 
   loadHistory() {
-    return request.get('/api/risk/history', { limit: 10 });
+    return request.get('/api/risk/history-with-advice', { limit: 10 });
   },
 
   normalizeDashboard(raw) {
@@ -154,36 +156,92 @@ Page({
     } else if (typeof x.reasonsJson === 'string' && x.reasonsJson) {
       try {
         const parsed = JSON.parse(x.reasonsJson);
-        if (Array.isArray(parsed)) {
-          reasons = parsed;
-        } else {
-          reasons = [x.reasonsJson];
-        }
+        reasons = Array.isArray(parsed) ? parsed : [x.reasonsJson];
       } catch (e) {
         reasons = [x.reasonsJson];
       }
     }
 
+    const advisorAdvice = x.advisorAdvice || null;
+
     return {
       id: x.id || '',
       riskLevel: x.riskLevel || '',
+      riskLevelText: this.getRiskLevelText(x.riskLevel),
       riskScore: Number(x.riskScore || 0),
-      reasons: reasons,
+      reasons,
       advice: x.advice || '',
       aiSummary: x.aiSummary || '',
-      createTime: x.createTime || ''
+      createTime: x.createTime || '',
+      createTimeText: this.formatTime(x.createTime),
+      advisorAdvice,
+      hasAdvisorAdvice: !!(advisorAdvice && advisorAdvice.messageId),
+      advisorAdviceTitle: advisorAdvice && advisorAdvice.title ? advisorAdvice.title : '',
+      advisorAdviceContent: advisorAdvice && advisorAdvice.content ? advisorAdvice.content : ''
     };
   },
 
   normalizeEvaluateResult(raw) {
+    const aiPrediction = this.normalizeAiPrediction(raw.aiPrediction || null);
+
     return {
       riskLevel: raw.riskLevel || '',
+      riskLevelText: this.getRiskLevelText(raw.riskLevel),
       riskScore: Number(raw.riskScore || 0),
       reasons: Array.isArray(raw.reasons) ? raw.reasons : [],
       advice: raw.advice || '',
       aiSummary: raw.aiSummary || '',
-      aiPrediction: raw.aiPrediction || null
+      aiPrediction
     };
+  },
+
+  normalizeAiPrediction(raw) {
+    if (!raw) return null;
+
+    const confidenceRaw = raw.confidence;
+    let confidenceText = '-';
+
+    if (confidenceRaw !== undefined && confidenceRaw !== null && confidenceRaw !== '') {
+      const num = Number(confidenceRaw);
+      if (!Number.isNaN(num)) {
+        confidenceText = `${Math.round(num * 100)}%`;
+      }
+    }
+
+    return {
+      model: raw.model || '-',
+      horizonDays: Number(raw.horizonDays || 0),
+      predictedRiskScore: Number(raw.predictedRiskScore || 0),
+      predictedLevel: raw.predictedLevel || '',
+      predictedLevelText: this.getRiskLevelText(raw.predictedLevel),
+      predictedWeightKg: raw.predictedWeightKg || '',
+      trend: raw.trend || '',
+      trendText: this.getTrendText(raw.trend),
+      confidence: raw.confidence,
+      confidenceText,
+      historyCount: Number(raw.historyCount || 0),
+      message: raw.message || '',
+      suggestion: raw.suggestion || '',
+      basis: Array.isArray(raw.basis) ? raw.basis : []
+    };
+  },
+
+  getRiskLevelText(level) {
+    if (level === 'HIGH') return '高风险';
+    if (level === 'MID') return '中风险';
+    return '低风险';
+  },
+
+  getTrendText(trend) {
+    if (trend === 'UP') return '上升';
+    if (trend === 'DOWN') return '下降';
+    if (trend === 'STABLE') return '稳定';
+    return trend || '-';
+  },
+
+  formatTime(timeStr) {
+    if (!timeStr) return '';
+    return String(timeStr).replace('T', ' ').replace(/\.\d+$/, '').slice(0, 19);
   },
 
   doEvaluate() {
@@ -243,6 +301,29 @@ Page({
     });
   },
 
+  goHistoryDetail(e) {
+    const id = Number(e.currentTarget.dataset.id || 0);
+    const item = this.data.historyList.find(row => Number(row.id) === id);
+  
+    if (!item) {
+      wx.showToast({
+        title: '记录不存在',
+        icon: 'none'
+      });
+      return;
+    }
+  
+    try {
+      wx.setStorageSync('RISK_DETAIL_CACHE', item);
+    } catch (err) {
+      console.error('[risk] set cache fail =', err);
+    }
+  
+    wx.navigateTo({
+      url: `/pages/risk/detail/detail?id=${id}`
+    });
+  },
+
   drawRiskTrend() {
     if (!this.data.chartReady) return;
 
@@ -277,7 +358,7 @@ Page({
         : (item.total !== undefined ? item.total : (item.value !== undefined ? item.value : 0));
 
       return {
-        rawDate: rawDate,
+        rawDate,
         label: this.formatShortDate(rawDate),
         value: Number(rawValue || 0)
       };
@@ -318,7 +399,6 @@ Page({
     };
     this.chartPoints = points;
 
-    // 网格线
     ctx.setStrokeStyle('#e5e7eb');
     ctx.setLineWidth(1);
     for (let i = 0; i <= 4; i++) {
@@ -329,7 +409,6 @@ Page({
       ctx.stroke();
     }
 
-    // y轴文字
     ctx.setFillStyle('#94a3b8');
     ctx.setFontSize(10);
     for (let i = 0; i <= 4; i++) {
@@ -338,7 +417,6 @@ Page({
       ctx.fillText(String(value), 6, y);
     }
 
-    // x轴文字抽样
     const labelStep = this.getLabelStep(points.length);
     points.forEach((item, idx) => {
       const shouldShow =
@@ -353,7 +431,6 @@ Page({
       ctx.fillText(item.label, item.x - 12, height - 12);
     });
 
-    // 折线
     ctx.setStrokeStyle('#2f6bff');
     ctx.setLineWidth(2);
     ctx.beginPath();
@@ -366,7 +443,6 @@ Page({
     });
     ctx.stroke();
 
-    // 面积
     ctx.beginPath();
     points.forEach((item, idx) => {
       if (idx === 0) {
@@ -383,7 +459,6 @@ Page({
     ctx.setFillStyle('rgba(47,107,255,0.08)');
     ctx.fill();
 
-    // 普通点
     points.forEach(item => {
       ctx.setFillStyle('#2f6bff');
       ctx.beginPath();
@@ -391,7 +466,6 @@ Page({
       ctx.fill();
     });
 
-    // 只给非0点标数值
     let lastValueLabelX = -999;
     points.forEach(item => {
       if (item.value <= 0) return;
@@ -404,7 +478,6 @@ Page({
       lastValueLabelX = item.x;
     });
 
-    // 高亮当前选中的点
     const activeIndex = this.data.activeChartIndex;
     if (activeIndex >= 0 && points[activeIndex]) {
       const active = points[activeIndex];
@@ -532,7 +605,6 @@ Page({
   },
 
   onChartTouchEnd() {
-    // 这里不隐藏提示，方便用户停下来继续看
   },
 
   hideChartHint() {
@@ -546,13 +618,13 @@ Page({
 
   goLatest() {
     wx.navigateTo({
-      url: '/pages/health-record/list/list'
+      url: '/pages/health/latest/latest'
     });
   },
 
   goRecord() {
     wx.navigateTo({
-      url: '/pages/health-record/create/create'
+      url: '/pages/health/record/record'
     });
   }
 });

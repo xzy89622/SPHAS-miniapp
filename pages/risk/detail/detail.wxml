@@ -1,0 +1,41 @@
+<view class="page">
+  <view wx:if="{{errMsg}}" class="empty">{{errMsg}}</view>
+
+  <block wx:if="{{detail}}">
+    <view class="card">
+      <view class="top-row">
+        <view class="level-badge {{detail.riskLevel === 'HIGH' ? 'danger' : (detail.riskLevel === 'MID' ? 'warn' : 'safe')}}">
+          {{detail.riskLevelText}}
+        </view>
+        <view class="time">{{detail.createTimeText}}</view>
+      </view>
+
+      <view class="score">风险分：{{detail.riskScore}}</view>
+    </view>
+
+    <view class="card" wx:if="{{detail.reasons && detail.reasons.length}}">
+      <view class="section-title">触发原因</view>
+      <view class="tag-list">
+        <view class="tag" wx:for="{{detail.reasons}}" wx:key="index">{{item}}</view>
+      </view>
+    </view>
+
+    <view class="card" wx:if="{{detail.aiSummary}}">
+      <view class="section-title">AI 解读</view>
+      <view class="text">{{detail.aiSummary}}</view>
+    </view>
+
+    <view class="card" wx:if="{{detail.advice}}">
+      <view class="section-title">干预建议</view>
+      <view class="text">{{detail.advice}}</view>
+    </view>
+
+    <view class="card" wx:if="{{detail.hasAdvisorAdvice}}">
+      <view class="section-title">顾问建议</view>
+      <view class="advice-title">{{detail.advisorAdviceTitle}}</view>
+      <view class="text">{{detail.advisorAdviceContent}}</view>
+
+      <button class="go-btn" bindtap="goAdviceDetail">查看消息详情</button>
+    </view>
+  </block>
+</view>

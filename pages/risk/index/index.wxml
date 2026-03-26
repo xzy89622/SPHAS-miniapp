@@ -89,7 +89,7 @@
 
     <view class="result-top">
       <view class="level-badge {{latestResult.riskLevel === 'HIGH' ? 'danger' : (latestResult.riskLevel === 'MID' ? 'warn' : 'safe')}}">
-        {{latestResult.riskLevel === 'HIGH' ? '高风险' : (latestResult.riskLevel === 'MID' ? '中风险' : '低风险')}}
+        {{latestResult.riskLevelText}}
       </view>
       <view class="score">风险分：{{latestResult.riskScore}}</view>
     </view>
@@ -131,13 +131,43 @@
         </view>
 
         <view class="predict-item">
+          <view class="p-label">预测等级</view>
+          <view class="p-value">{{latestResult.aiPrediction.predictedLevelText || '-'}}</view>
+        </view>
+
+        <view class="predict-item">
           <view class="p-label">趋势</view>
-          <view class="p-value">{{latestResult.aiPrediction.trend || '-'}}</view>
+          <view class="p-value">{{latestResult.aiPrediction.trendText || '-'}}</view>
         </view>
 
         <view class="predict-item" wx:if="{{latestResult.aiPrediction.predictedWeightKg}}">
           <view class="p-label">预测体重</view>
           <view class="p-value">{{latestResult.aiPrediction.predictedWeightKg}} kg</view>
+        </view>
+
+        <view class="predict-item">
+          <view class="p-label">置信度</view>
+          <view class="p-value">{{latestResult.aiPrediction.confidenceText || '-'}}</view>
+        </view>
+
+        <view class="predict-item">
+          <view class="p-label">历史样本</view>
+          <view class="p-value">{{latestResult.aiPrediction.historyCount || 0}} 条</view>
+        </view>
+      </view>
+
+      <view class="predict-msg" wx:if="{{latestResult.aiPrediction.message}}">
+        <view class="block-title small">预测结论</view>
+        <view class="text">{{latestResult.aiPrediction.message}}</view>
+      </view>
+
+      <view class="predict-basis" wx:if="{{latestResult.aiPrediction.basis && latestResult.aiPrediction.basis.length}}">
+        <view class="block-title small">预测依据</view>
+        <view class="basis-list">
+          <view class="basis-item" wx:for="{{latestResult.aiPrediction.basis}}" wx:key="index">
+            <text class="basis-dot">•</text>
+            <text class="basis-text">{{item}}</text>
+          </view>
         </view>
       </view>
 
@@ -154,12 +184,12 @@
       暂无历史预警记录，先点击“立即生成预警”
     </view>
 
-    <view class="history-item" wx:for="{{historyList}}" wx:key="id">
+    <view class="history-item" wx:for="{{historyList}}" wx:key="id" data-id="{{item.id}}" bindtap="goHistoryDetail">
       <view class="history-top">
         <view class="level-badge {{item.riskLevel === 'HIGH' ? 'danger' : (item.riskLevel === 'MID' ? 'warn' : 'safe')}}">
-          {{item.riskLevel === 'HIGH' ? '高风险' : (item.riskLevel === 'MID' ? '中风险' : '低风险')}}
+          {{item.riskLevelText}}
         </view>
-        <view class="time">{{item.createTime}}</view>
+        <view class="time">{{item.createTimeText}}</view>
       </view>
 
       <view class="history-score">风险分：{{item.riskScore}}</view>
@@ -168,12 +198,17 @@
         <view class="tag" wx:for="{{item.reasons}}" wx:key="index">{{item}}</view>
       </view>
 
-      <view class="history-text" wx:if="{{item.aiSummary}}">
+      <view class="history-text ellipsis-2" wx:if="{{item.aiSummary}}">
         AI 解读：{{item.aiSummary}}
       </view>
 
-      <view class="history-text" wx:if="{{item.advice}}">
+      <view class="history-text ellipsis-2" wx:if="{{item.advice}}">
         建议：{{item.advice}}
+      </view>
+
+      <view class="history-more">
+        <text>查看详情</text>
+        <text class="more-arrow">></text>
       </view>
     </view>
   </view>

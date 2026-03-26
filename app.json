@@ -30,7 +30,9 @@
     "pages/report/index/index",
     "pages/profile/index/index",
     "pages/report/history/list/list",
-    "pages/report/history/detail/detail"
+    "pages/report/history/detail/detail",
+    "pages/risk/detail/detail",
+    "pages/blockchain/index/index"
   ],
   "window": {
     "navigationBarTitleText": "SPHAS",

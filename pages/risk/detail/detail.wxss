@@ -1,0 +1,112 @@
+.page {
+  min-height: 100vh;
+  background: #f6f7fb;
+  padding: 24rpx;
+  box-sizing: border-box;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 22rpx;
+  padding: 24rpx;
+  margin-bottom: 18rpx;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.06);
+}
+
+.top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16rpx;
+  flex-wrap: wrap;
+}
+
+.level-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8rpx 18rpx;
+  border-radius: 999rpx;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.level-badge.safe {
+  background: #eaf8ee;
+  color: #169c46;
+}
+
+.level-badge.warn {
+  background: #fff4dd;
+  color: #d88b00;
+}
+
+.level-badge.danger {
+  background: #ffe6e6;
+  color: #e53935;
+}
+
+.time {
+  font-size: 24rpx;
+  color: #888888;
+}
+
+.score {
+  margin-top: 18rpx;
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #222222;
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #222222;
+  margin-bottom: 14rpx;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.tag {
+  background: #f3f5f9;
+  color: #333333;
+  font-size: 24rpx;
+  border-radius: 999rpx;
+  padding: 8rpx 16rpx;
+}
+
+.text {
+  font-size: 27rpx;
+  color: #444444;
+  line-height: 1.9;
+}
+
+.advice-title {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #2f6bff;
+  margin-bottom: 12rpx;
+}
+
+.go-btn {
+  margin-top: 20rpx;
+  background: #2f6bff;
+  color: #ffffff;
+  border-radius: 16rpx;
+  font-size: 28rpx;
+}
+
+.go-btn::after {
+  border: none;
+}
+
+.empty {
+  text-align: center;
+  color: #888888;
+  font-size: 28rpx;
+  padding: 120rpx 0;
+}

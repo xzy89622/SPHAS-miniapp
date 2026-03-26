@@ -1,0 +1,138 @@
+<view class="page">
+  <view class="hero card">
+    <view class="hero-title">链式存证记录</view>
+    <view class="hero-desc">
+      查看健康指标和风险预警的区块链式日志，支持链完整性校验与哈希追溯。
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="tab-row">
+      <view
+        class="tab {{bizType === 'METRIC' ? 'active' : ''}}"
+        data-type="METRIC"
+        bindtap="changeBizType"
+      >
+        健康指标
+      </view>
+      <view
+        class="tab {{bizType === 'RISK_ALERT' ? 'active' : ''}}"
+        data-type="RISK_ALERT"
+        bindtap="changeBizType"
+      >
+        风险预警
+      </view>
+    </view>
+
+    <view class="verify-card {{verifyPassed ? 'ok' : 'warn'}}">
+      <view class="verify-title">
+        {{verifyPassed ? '链校验通过' : '链校验异常'}}
+      </view>
+      <view class="verify-desc">{{verifyMessage}}</view>
+      <button class="verify-btn" loading="{{verifying}}" bindtap="onVerifyTap">
+        {{verifying ? '校验中...' : '重新校验'}}
+      </button>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">存证列表</view>
+
+    <view wx:if="{{loading}}" class="empty">
+      加载中...
+    </view>
+
+    <view wx:elif="{{!list.length}}" class="empty">
+      暂无存证记录
+    </view>
+
+    <view
+      wx:for="{{list}}"
+      wx:key="id"
+      class="chain-item"
+      data-id="{{item.id}}"
+      bindtap="showDetail"
+    >
+      <view class="chain-top">
+        <view class="biz-tag">{{item.bizTypeText}}</view>
+        <view class="chain-time">{{item.createTime}}</view>
+      </view>
+
+      <view class="chain-line">
+        <text class="label">业务ID：</text>
+        <text>{{item.bizId}}</text>
+      </view>
+
+      <view class="chain-line">
+        <text class="label">操作：</text>
+        <text>{{item.actionText}}</text>
+      </view>
+
+      <view class="chain-line">
+        <text class="label">数据指纹：</text>
+        <text class="hash">{{item.dataHashShort}}</text>
+      </view>
+
+      <view class="chain-line">
+        <text class="label">前区块：</text>
+        <text class="hash">{{item.prevHashShort}}</text>
+      </view>
+
+      <view class="chain-line">
+        <text class="label">当前区块：</text>
+        <text class="hash">{{item.blockHashShort}}</text>
+      </view>
+
+      <view class="detail-link">查看完整哈希 ></view>
+    </view>
+  </view>
+
+  <view wx:if="{{currentDetail}}" class="mask" bindtap="closeDetail">
+    <view class="dialog" catchtap="noop">
+      <view class="dialog-title">区块详情</view>
+
+      <view class="dialog-item">
+        <text class="dialog-label">业务类型：</text>
+        <text>{{currentDetail.bizTypeText}}</text>
+      </view>
+      <view class="dialog-item">
+        <text class="dialog-label">业务ID：</text>
+        <text>{{currentDetail.bizId}}</text>
+      </view>
+      <view class="dialog-item">
+        <text class="dialog-label">操作：</text>
+        <text>{{currentDetail.actionText}}</text>
+      </view>
+      <view class="dialog-item">
+        <text class="dialog-label">创建时间：</text>
+        <text>{{currentDetail.createTime}}</text>
+      </view>
+
+      <view class="hash-block">
+        <view class="hash-head">
+          <view class="hash-title">数据指纹</view>
+          <view class="copy-btn" data-text="{{currentDetail.dataHash}}" data-label="数据指纹" bindtap="copyHash">复制</view>
+        </view>
+        <view class="hash-text">{{currentDetail.dataHash}}</view>
+      </view>
+
+      <view class="hash-block">
+        <view class="hash-head">
+          <view class="hash-title">前区块 Hash</view>
+          <view class="copy-btn" data-text="{{currentDetail.prevHash}}" data-label="前区块哈希" bindtap="copyHash">复制</view>
+        </view>
+        <view class="hash-text">{{currentDetail.prevHash}}</view>
+      </view>
+
+      <view class="hash-block">
+        <view class="hash-head">
+          <view class="hash-title">当前区块 Hash</view>
+          <view class="copy-btn" data-text="{{currentDetail.blockHash}}" data-label="当前区块哈希" bindtap="copyHash">复制</view>
+        </view>
+        <view class="hash-text">{{currentDetail.blockHash}}</view>
+      </view>
+
+      <button class="close-btn" bindtap="closeDetail">关闭</button>
+    </view>
+  </view>
+</view>
