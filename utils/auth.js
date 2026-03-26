@@ -1,4 +1,3 @@
-// utils/auth.js
 const request = require('./request');
 
 const TOKEN_KEY = 'token';
@@ -43,9 +42,28 @@ function getUserId() {
   return wx.getStorageSync(USER_ID_KEY) || '';
 }
 
-// 登录
+// 账号/手机号登录
 function login(username, password) {
   return request.post('/api/auth/login', { username, password });
+}
+
+// 微信快捷登录
+function wxLogin(code, nickname, avatarUrl) {
+  return request.post('/api/auth/wx-login', {
+    code,
+    nickname: nickname || '',
+    avatarUrl: avatarUrl || ''
+  });
+}
+
+// 微信手机号授权一键登录
+function wxPhoneLogin(loginCode, phoneCode, nickname, avatarUrl) {
+  return request.post('/api/auth/wx-phone-login', {
+    loginCode,
+    phoneCode,
+    nickname: nickname || '',
+    avatarUrl: avatarUrl || ''
+  });
 }
 
 // 注册
@@ -73,6 +91,8 @@ module.exports = {
   getUserInfo,
   getUserId,
   login,
+  wxLogin,
+  wxPhoneLogin,
   register,
   profile,
   syncProfile

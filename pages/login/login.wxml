@@ -7,23 +7,23 @@
       <view class="brand-badge">S</view>
       <view class="brand-text">
         <view class="brand-title">SPHAS 健康助手</view>
-        <view class="brand-subtitle">关注每日健康，记录更好的自己</view>
+        <view class="brand-subtitle">账号登录和微信快捷登录都支持</view>
       </view>
     </view>
 
     <view class="login-card">
       <view class="card-title">欢迎登录</view>
-      <view class="card-desc">登录后即可查看健康记录、推荐内容与个人数据</view>
+      <view class="card-desc">登录后可查看健康记录、推荐内容和个人数据</view>
 
       <view class="form-item">
-        <view class="label">账号</view>
+        <view class="label">账号 / 手机号</view>
         <view class="input-wrap">
           <input
             class="input"
-            placeholder="请输入账号"
+            placeholder="请输入账号或手机号"
             placeholder-class="ph"
-            value="{{username}}"
-            bindinput="onUsername"
+            value="{{account}}"
+            bindinput="onAccount"
           />
         </view>
       </view>
@@ -33,9 +33,9 @@
         <view class="input-wrap">
           <input
             class="input"
+            password
             placeholder="请输入密码"
             placeholder-class="ph"
-            password
             value="{{password}}"
             bindinput="onPassword"
           />
@@ -45,15 +45,32 @@
       <button
         class="login-btn"
         loading="{{loading}}"
-        disabled="{{loading}}"
+        disabled="{{loading || wxLoading}}"
         bindtap="onLogin"
       >
-        <text class="btn-text">{{loading ? '登录中...' : '登录'}}</text>
+        {{loading ? '登录中...' : '账号登录'}}
       </button>
+
+      <view class="split-text">或</view>
+
+      <!-- 只保留这一个微信按钮 -->
+      <button
+        class="wechat-btn"
+        loading="{{wxLoading}}"
+        disabled="{{loading || wxLoading}}"
+        open-type="getPhoneNumber"
+        bindgetphonenumber="onGetPhoneNumber"
+      >
+        {{wxLoading ? '登录中...' : '微信快捷登录'}}
+      </button>
+
+      <view class="wx-tip">
+        默认优先使用微信手机号快捷登录，未授权手机号时会自动切换为微信快捷登录
+      </view>
 
       <view class="bottom-row">
         <text class="bottom-text">还没有账号？</text>
-        <text class="register-link" bindtap="goRegister">立即注册</text>
+        <text class="register-link" bindtap="goRegister">手机号注册</text>
       </view>
     </view>
   </view>

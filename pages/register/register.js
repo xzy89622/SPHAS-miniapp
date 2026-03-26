@@ -4,51 +4,38 @@ const request = require('../../utils/request');
 Page({
   data: {
     form: {
-      username: '',
-      nickname: '',
       phone: '',
+      nickname: '',
       password: '',
       confirmPassword: ''
     },
     submitting: false
   },
 
-  // 输入账号
-  onUsername(e) {
-    this.setData({
-      'form.username': e.detail.value
-    });
-  },
-
-  // 输入昵称
-  onNickname(e) {
-    this.setData({
-      'form.nickname': e.detail.value
-    });
-  },
-
-  // 输入手机号
   onPhone(e) {
     this.setData({
       'form.phone': e.detail.value
     });
   },
 
-  // 输入密码
+  onNickname(e) {
+    this.setData({
+      'form.nickname': e.detail.value
+    });
+  },
+
   onPassword(e) {
     this.setData({
       'form.password': e.detail.value
     });
   },
 
-  // 输入确认密码
   onPassword2(e) {
     this.setData({
       'form.confirmPassword': e.detail.value
     });
   },
 
-  // 返回登录
   goLogin() {
     if (this.data.submitting) return;
 
@@ -62,20 +49,26 @@ Page({
     });
   },
 
-  // 注册
   async onRegister() {
     if (this.data.submitting) return;
 
     const form = this.data.form;
-    const username = (form.username || '').trim();
-    const nickname = (form.nickname || '').trim();
     const phone = (form.phone || '').trim();
+    const nickname = (form.nickname || '').trim();
     const password = (form.password || '').trim();
     const confirmPassword = (form.confirmPassword || '').trim();
 
-    if (!username) {
+    if (!phone) {
       wx.showToast({
-        title: '请输入账号',
+        title: '请输入手机号',
+        icon: 'none'
+      });
+      return;
+    }
+
+    if (!/^1\d{10}$/.test(phone)) {
+      wx.showToast({
+        title: '手机号格式不正确',
         icon: 'none'
       });
       return;
@@ -84,6 +77,14 @@ Page({
     if (!password) {
       wx.showToast({
         title: '请输入密码',
+        icon: 'none'
+      });
+      return;
+    }
+
+    if (password.length < 6) {
+      wx.showToast({
+        title: '密码至少 6 位',
         icon: 'none'
       });
       return;
@@ -105,33 +106,23 @@ Page({
       return;
     }
 
-    if (phone && !/^1\d{10}$/.test(phone)) {
-      wx.showToast({
-        title: '手机号格式不正确',
-        icon: 'none'
-      });
-      return;
-    }
-
     this.setData({
       submitting: true
     });
 
     try {
-      // 这里一定要对上后端 /api/auth/register
       await request.post('/api/auth/register', {
-        username,
+        username: phone,
         password,
-        nickname,
+        nickname: nickname || `用户${phone.slice(-4)}`,
         phone
       });
 
-      // 注册成功后直接登录
-      const token = await auth.login(username, password);
+      const token = await auth.login(phone, password);
 
       if (!token) {
         wx.showToast({
-          title: '注册成功，请登录',
+          title: '注册成功，请返回登录',
           icon: 'none'
         });
         return;
