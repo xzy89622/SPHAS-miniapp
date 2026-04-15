@@ -164,7 +164,8 @@ function updatePost(data) {
 }
 
 function deletePost(postId) {
-  return request.post('/api/social/post/delete', { postId: Number(postId) });
+  const id = Number(postId || 0);
+  return request.post(`/api/social/post/delete?postId=${id}`, {});
 }
 
 function toggleLike(postId) {

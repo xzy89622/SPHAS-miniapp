@@ -49,10 +49,11 @@ Page({
   async loadMySocialStats() {
     try {
       const res = await socialApi.myPostStats();
+
       this.setData({
-        socialPendingCount: Number((res && res.pendingCount) || 0),
-        socialRejectedCount: Number((res && res.rejectedCount) || 0),
-        socialHiddenCount: Number((res && res.hiddenCount) || 0)
+        socialPendingCount: Number((res && res.pending) || 0),
+        socialRejectedCount: Number((res && res.rejected) || 0),
+        socialHiddenCount: Number((res && res.hidden) || 0)
       });
     } catch (e) {
       console.log('[index] social stats fail', e);
